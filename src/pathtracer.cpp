@@ -1,4 +1,6 @@
-#include "pathtracer.h" //
+// The Official Reference Code
+
+#include "pathtracer.h"
 #include "bsdf.h"
 #include "ray.h"
 
