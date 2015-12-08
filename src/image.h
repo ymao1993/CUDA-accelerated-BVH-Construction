@@ -5,6 +5,7 @@
 #include "CMU462/spectrum.h"
 
 #include <vector>
+#include <string.h>
 
 namespace CMU462 {
 
