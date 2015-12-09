@@ -372,6 +372,7 @@ src/CMakeFiles/pathtracer.dir/main.cpp.o
  /afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/src/static_scene/environment_light.h
  /afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/src/static_scene/primitive.h
  /afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/src/static_scene/scene.h
+ /afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/src/version.cu
  /afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/src/work_queue.h
 src/CMakeFiles/pathtracer.dir/meshEdit.cpp.o
  ../CMU462/include/CMU462/CMU462.h

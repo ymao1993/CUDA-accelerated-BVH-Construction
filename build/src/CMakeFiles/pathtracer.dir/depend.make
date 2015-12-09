@@ -371,6 +371,7 @@ src/CMakeFiles/pathtracer.dir/main.cpp.o: ../src/static_scene/alias_table.h
 src/CMakeFiles/pathtracer.dir/main.cpp.o: ../src/static_scene/environment_light.h
 src/CMakeFiles/pathtracer.dir/main.cpp.o: ../src/static_scene/primitive.h
 src/CMakeFiles/pathtracer.dir/main.cpp.o: ../src/static_scene/scene.h
+src/CMakeFiles/pathtracer.dir/main.cpp.o: ../src/version.cu
 src/CMakeFiles/pathtracer.dir/main.cpp.o: ../src/work_queue.h
 
 src/CMakeFiles/pathtracer.dir/meshEdit.cpp.o: ../CMU462/include/CMU462/CMU462.h

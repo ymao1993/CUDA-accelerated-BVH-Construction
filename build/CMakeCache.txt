@@ -191,6 +191,96 @@ CMU462_LIB_DEPENDS:STATIC=general;glew;general;/usr/lib64/libX11.so;general;-lpt
 //Value Computed by CMake
 CMU462_SOURCE_DIR:STATIC=/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462
 
+//Compile device code in 64 bit mode
+CUDA_64_BIT_DEVICE_CODE:BOOL=ON
+
+//Attach the build rule to the CUDA source file.  Enable only when
+// the CUDA source file is added to at most one target.
+CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE:BOOL=ON
+
+//Generate and parse .cubin files in Device mode.
+CUDA_BUILD_CUBIN:BOOL=OFF
+
+//Build in Emulation mode
+CUDA_BUILD_EMULATION:BOOL=OFF
+
+//"cudart" library
+CUDA_CUDART_LIBRARY:FILEPATH=/usr/local/depot/cuda-7.5/lib64/libcudart.so
+
+//"cuda" library (older versions only).
+CUDA_CUDA_LIBRARY:FILEPATH=CUDA_CUDA_LIBRARY-NOTFOUND
+
+//Directory to put all the output files.  If blank it will default
+// to the CMAKE_CURRENT_BINARY_DIR
+CUDA_GENERATED_OUTPUT_DIR:PATH=
+
+//Generated file extension
+CUDA_HOST_COMPILATION_CPP:BOOL=ON
+
+//Host side compiler used by NVCC
+CUDA_HOST_COMPILER:FILEPATH=/usr/lib64/ccache/cc
+
+//Path to a program.
+CUDA_NVCC_EXECUTABLE:FILEPATH=/usr/local/depot/cuda-7.5/bin/nvcc
+
+//Semi-colon delimit multiple arguments.
+CUDA_NVCC_FLAGS:STRING=
+
+//Semi-colon delimit multiple arguments.
+CUDA_NVCC_FLAGS_DEBUG:STRING=
+
+//Semi-colon delimit multiple arguments.
+CUDA_NVCC_FLAGS_MINSIZEREL:STRING=
+
+//Semi-colon delimit multiple arguments.
+CUDA_NVCC_FLAGS_RELEASE:STRING=
+
+//Semi-colon delimit multiple arguments.
+CUDA_NVCC_FLAGS_RELWITHDEBINFO:STRING=
+
+//Propage C/CXX_FLAGS and friends to the host compiler via -Xcompile
+CUDA_PROPAGATE_HOST_FLAGS:BOOL=ON
+
+//Path to a file.
+CUDA_SDK_ROOT_DIR:PATH=CUDA_SDK_ROOT_DIR-NOTFOUND
+
+//Compile CUDA objects with separable compilation enabled.  Requires
+// CUDA 5.0+
+CUDA_SEPARABLE_COMPILATION:BOOL=OFF
+
+//Path to a file.
+CUDA_TOOLKIT_INCLUDE:PATH=/usr/local/depot/cuda-7.5/include
+
+//Toolkit location.
+CUDA_TOOLKIT_ROOT_DIR:PATH=/usr/local/depot/cuda-7.5
+
+//Print out the commands run while compiling the CUDA source file.
+//  With the Makefile generator this defaults to VERBOSE variable
+// specified on the command line, but can be forced on with this
+// option.
+CUDA_VERBOSE_BUILD:BOOL=OFF
+
+//Version of CUDA as computed from nvcc.
+CUDA_VERSION:STRING=7.5
+
+//"cublas" library
+CUDA_cublas_LIBRARY:FILEPATH=/usr/local/depot/cuda-7.5/lib64/libcublas.so
+
+//"cufft" library
+CUDA_cufft_LIBRARY:FILEPATH=/usr/local/depot/cuda-7.5/lib64/libcufft.so
+
+//"cupti" library
+CUDA_cupti_LIBRARY:FILEPATH=/usr/local/depot/cuda-7.5/extras/CUPTI/lib64/libcupti.so
+
+//"curand" library
+CUDA_curand_LIBRARY:FILEPATH=/usr/local/depot/cuda-7.5/lib64/libcurand.so
+
+//"cusparse" library
+CUDA_cusparse_LIBRARY:FILEPATH=/usr/local/depot/cuda-7.5/lib64/libcusparse.so
+
+//"npp" library
+CUDA_npp_LIBRARY:FILEPATH=CUDA_npp_LIBRARY-NOTFOUND
+
 //Path to a file.
 FREETYPE_INCLUDE_DIR_freetype2:PATH=/usr/include/freetype2
 
@@ -263,6 +353,9 @@ PathTracer_SOURCE_DIR:STATIC=/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-as
 
 //Path to a library.
 RT_LIBRARY:FILEPATH=/usr/lib64/librt.so
+
+//Thrust headers
+THRUST_INCLUDE_DIR:PATH=/usr/local/depot/cuda-7.5/include
 
 //Path to a file.
 X11_ICE_INCLUDE_PATH:PATH=/usr/include
@@ -595,12 +688,70 @@ CMAKE_UNAME:INTERNAL=/usr/bin/uname
 CMAKE_USE_RELATIVE_PATHS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_64_BIT_DEVICE_CODE
+CUDA_64_BIT_DEVICE_CODE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE
+CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_CUDART_LIBRARY
+CUDA_CUDART_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_CUDA_LIBRARY
+CUDA_CUDA_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_GENERATED_OUTPUT_DIR
+CUDA_GENERATED_OUTPUT_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_HOST_COMPILATION_CPP
+CUDA_HOST_COMPILATION_CPP-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_NVCC_EXECUTABLE
+CUDA_NVCC_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_NVCC_FLAGS
+CUDA_NVCC_FLAGS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_NVCC_FLAGS_DEBUG
+CUDA_NVCC_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_NVCC_FLAGS_MINSIZEREL
+CUDA_NVCC_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_NVCC_FLAGS_RELEASE
+CUDA_NVCC_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_NVCC_FLAGS_RELWITHDEBINFO
+CUDA_NVCC_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_PROPAGATE_HOST_FLAGS
+CUDA_PROPAGATE_HOST_FLAGS-ADVANCED:INTERNAL=1
+//This is the value of the last time CUDA_SDK_ROOT_DIR was set
+// successfully.
+CUDA_SDK_ROOT_DIR_INTERNAL:INTERNAL=CUDA_SDK_ROOT_DIR-NOTFOUND
+//ADVANCED property for variable: CUDA_TOOLKIT_INCLUDE
+CUDA_TOOLKIT_INCLUDE-ADVANCED:INTERNAL=1
+//This is the value of the last time CUDA_TOOLKIT_ROOT_DIR was
+// set successfully.
+CUDA_TOOLKIT_ROOT_DIR_INTERNAL:INTERNAL=/usr/local/depot/cuda-7.5
+//ADVANCED property for variable: CUDA_VERSION
+CUDA_VERSION-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_cublas_LIBRARY
+CUDA_cublas_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_cufft_LIBRARY
+CUDA_cufft_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_cupti_LIBRARY
+CUDA_cupti_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_curand_LIBRARY
+CUDA_curand_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CUDA_cusparse_LIBRARY
+CUDA_cusparse_LIBRARY-ADVANCED:INTERNAL=1
+//Location of make2cmake.cmake
+CUDA_make2cmake:INTERNAL=/usr/share/cmake/Modules/FindCUDA/make2cmake.cmake
+//ADVANCED property for variable: CUDA_npp_LIBRARY
+CUDA_npp_LIBRARY-ADVANCED:INTERNAL=1
+//Location of parse_cubin.cmake
+CUDA_parse_cubin:INTERNAL=/usr/share/cmake/Modules/FindCUDA/parse_cubin.cmake
+//Location of run_nvcc.cmake
+CUDA_run_nvcc:INTERNAL=/usr/share/cmake/Modules/FindCUDA/run_nvcc.cmake
+//Details about finding CUDA
+FIND_PACKAGE_MESSAGE_DETAILS_CUDA:INTERNAL=[/usr/local/depot/cuda-7.5][/usr/local/depot/cuda-7.5/bin/nvcc][/usr/local/depot/cuda-7.5/include][/usr/local/depot/cuda-7.5/lib64/libcudart.so][v7.5()]
 //Details about finding Freetype
 FIND_PACKAGE_MESSAGE_DETAILS_Freetype:INTERNAL=[/usr/lib64/libfreetype.so][/usr/include;/usr/include/freetype2][v2.4.11()]
 //Details about finding OpenGL
 FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/usr/lib64/libGL.so][v()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
+//Details about finding Thrust
+FIND_PACKAGE_MESSAGE_DETAILS_Thrust:INTERNAL=[/usr/local/depot/cuda-7.5/include][v1.8.2()]
 //Details about finding X11
 FIND_PACKAGE_MESSAGE_DETAILS_X11:INTERNAL=[/usr/lib64/libX11.so][/usr/include]
 //ADVANCED property for variable: FREETYPE_INCLUDE_DIR_freetype2
@@ -671,6 +822,8 @@ OPENGL_xmesa_INCLUDE_DIR-ADVANCED:INTERNAL=1
 PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: RT_LIBRARY
 RT_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: THRUST_INCLUDE_DIR
+THRUST_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_ICE_INCLUDE_PATH
 X11_ICE_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_ICE_LIB

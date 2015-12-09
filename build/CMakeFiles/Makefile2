@@ -292,9 +292,9 @@ src/preinstall:
 # Target rules for target src/CMakeFiles/pathtracer.dir
 
 # All Build rule for target.
+src/CMakeFiles/pathtracer.dir/all: CMU462/deps/glfw/src/CMakeFiles/glfw.dir/all
 src/CMakeFiles/pathtracer.dir/all: CMU462/deps/glew/CMakeFiles/glew.dir/all
 src/CMakeFiles/pathtracer.dir/all: CMU462/src/CMakeFiles/CMU462.dir/all
-src/CMakeFiles/pathtracer.dir/all: CMU462/deps/glfw/src/CMakeFiles/glfw.dir/all
 	$(MAKE) -f src/CMakeFiles/pathtracer.dir/build.make src/CMakeFiles/pathtracer.dir/depend
 	$(MAKE) -f src/CMakeFiles/pathtracer.dir/build.make src/CMakeFiles/pathtracer.dir/build
 	$(CMAKE_COMMAND) -E cmake_progress_report /afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/build/CMakeFiles  32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57

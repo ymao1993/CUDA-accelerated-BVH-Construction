@@ -12,6 +12,8 @@ option(BUILD_DOCS      "Build documentation"          OFF)
 # Platform-specific settings
 #-------------------------------------------------------------------------------
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
+
 ###################
 # Building on OSX #
 ###################
@@ -143,6 +145,8 @@ endif(WIN32)
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(CUDA REQUIRED)
+find_package(Thrust REQUIRED)
 
 # CMU462
 if(BUILD_LIBCMU462)
