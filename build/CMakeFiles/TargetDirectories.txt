@@ -1,4 +1,0 @@
-/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/build/src/CMakeFiles/pathtracer.dir
-/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/build/CMU462/src/CMakeFiles/CMU462.dir
-/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/build/CMU462/deps/glfw/CMakeFiles/uninstall.dir
-/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/build/CMU462/deps/glfw/src/CMakeFiles/glfw.dir
