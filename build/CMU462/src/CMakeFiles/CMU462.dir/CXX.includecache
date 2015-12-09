@@ -220,15 +220,15 @@ GL/glext.h
 GL/glu.h
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/base64.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/base64.cpp
 base64.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/base64.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/base64.h
 iostream
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/color.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/color.cpp
 color.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/color.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/color.h
 stdio.h
 -
 string.h
@@ -238,13 +238,13 @@ ostream
 sstream
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/complex.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/complex.cpp
 complex.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/complex.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/complex.h
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/lodepng.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/lodepng.cpp
 lodepng.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/lodepng.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/lodepng.h
 stdio.h
 -
 stdlib.h
@@ -252,41 +252,41 @@ stdlib.h
 fstream
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix3x3.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix3x3.cpp
 matrix3x3.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix3x3.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix3x3.h
 iostream
 -
 cmath
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix4x4.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix4x4.cpp
 matrix4x4.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix4x4.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/matrix4x4.h
 iostream
 -
 cmath
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/osdtext.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/osdtext.cpp
 osdtext.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/osdtext.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/osdtext.h
 iostream
 -
 ft2build.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/ft2build.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/ft2build.h
 base64.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/base64.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/base64.h
 console.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/console.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/console.h
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/quaternion.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/quaternion.cpp
 quaternion.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/quaternion.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/quaternion.h
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/spectrum.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/spectrum.cpp
 spectrum.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/spectrum.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/spectrum.h
 stdio.h
 -
 string.h
@@ -296,9 +296,9 @@ ostream
 sstream
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/tinyxml2.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/tinyxml2.cpp
 tinyxml2.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/tinyxml2.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/tinyxml2.h
 new
 -
 stddef.h
@@ -306,21 +306,21 @@ stddef.h
 cstddef
 -
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector2D.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector2D.cpp
 vector2D.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector2D.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector2D.h
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector3D.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector3D.cpp
 vector3D.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector3D.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector3D.h
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector4D.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector4D.cpp
 vector4D.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector4D.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/vector4D.h
 
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/viewer.cpp
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/viewer.cpp
 viewer.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/viewer.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/viewer.h
 stdio.h
 -
 cmath
@@ -332,7 +332,13 @@ iostream
 algorithm
 -
 GL/glew.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/GL/glew.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/GL/glew.h
 console.h
-/afs/andrew.cmu.edu/usr4/ymao1/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/console.h
+/Users/MaoYu/Desktop/cmu-15462-assignment5-YuMao-RuiZhu/CMU462/src/console.h
+
+/usr/local/include/freetype2/config/ftheader.h
+
+/usr/local/include/freetype2/ft2build.h
+config/ftheader.h
+-
 

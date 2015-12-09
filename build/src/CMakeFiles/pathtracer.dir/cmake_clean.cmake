@@ -1,4 +1,4 @@
-FILE(REMOVE_RECURSE
+file(REMOVE_RECURSE
   "CMakeFiles/pathtracer.dir/collada/collada.cpp.o"
   "CMakeFiles/pathtracer.dir/collada/camera_info.cpp.o"
   "CMakeFiles/pathtracer.dir/collada/light_info.cpp.o"
@@ -30,6 +30,6 @@ FILE(REMOVE_RECURSE
 )
 
 # Per-language clean rules from dependency scanning.
-FOREACH(lang CXX)
-  INCLUDE(CMakeFiles/pathtracer.dir/cmake_clean_${lang}.cmake OPTIONAL)
-ENDFOREACH(lang)
+foreach(lang CXX)
+  include(CMakeFiles/pathtracer.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

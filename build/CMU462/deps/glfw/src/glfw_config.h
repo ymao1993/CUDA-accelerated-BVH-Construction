@@ -35,11 +35,11 @@
 //========================================================================
 
 // Define this to 1 if building GLFW for X11
-#define _GLFW_X11
+/* #undef _GLFW_X11 */
 // Define this to 1 if building GLFW for Win32
 /* #undef _GLFW_WIN32 */
 // Define this to 1 if building GLFW for Cocoa
-/* #undef _GLFW_COCOA */
+#define _GLFW_COCOA
 // Define this to 1 if building GLFW for Wayland
 /* #undef _GLFW_WAYLAND */
 // Define this to 1 if building GLFW for Mir
@@ -48,11 +48,11 @@
 // Define this to 1 if building GLFW for EGL
 /* #undef _GLFW_EGL */
 // Define this to 1 if building GLFW for GLX
-#define _GLFW_GLX
+/* #undef _GLFW_GLX */
 // Define this to 1 if building GLFW for WGL
 /* #undef _GLFW_WGL */
 // Define this to 1 if building GLFW for NSGL
-/* #undef _GLFW_NSGL */
+#define _GLFW_NSGL
 
 // Define this to 1 if building as a shared library / dynamic library / DLL
 /* #undef _GLFW_BUILD_DLL */
@@ -63,24 +63,24 @@
 /* #undef _GLFW_USE_OPTIMUS_HPG */
 
 // Define this to 1 if the XInput X11 extension is available
-#define _GLFW_HAS_XINPUT
+/* #undef _GLFW_HAS_XINPUT */
 // Define this to 1 if the Xxf86vm X11 extension is available
-#define _GLFW_HAS_XF86VM
+/* #undef _GLFW_HAS_XF86VM */
 // Define this to 1 if glXGetProcAddress is available
-#define _GLFW_HAS_GLXGETPROCADDRESS
+/* #undef _GLFW_HAS_GLXGETPROCADDRESS */
 // Define this to 1 if glXGetProcAddressARB is available
-#define _GLFW_HAS_GLXGETPROCADDRESSARB
+/* #undef _GLFW_HAS_GLXGETPROCADDRESSARB */
 // Define this to 1 if glXGetProcAddressEXT is available
 /* #undef _GLFW_HAS_GLXGETPROCADDRESSEXT */
 // Define this to 1 if dlopen is available
 /* #undef _GLFW_HAS_DLOPEN */
 
 // Define this to 1 if glfwInit should change the current directory
-/* #undef _GLFW_USE_CHDIR */
+#define _GLFW_USE_CHDIR
 // Define this to 1 if glfwCreateWindow should populate the menu bar
-/* #undef _GLFW_USE_MENUBAR */
+#define _GLFW_USE_MENUBAR
 // Define this to 1 if windows should use full resolution on Retina displays
-/* #undef _GLFW_USE_RETINA */
+#define _GLFW_USE_RETINA
 
 // Define this to 1 if using OpenGL as the client library
 #define _GLFW_USE_OPENGL

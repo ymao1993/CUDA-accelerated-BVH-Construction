@@ -10,7 +10,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "version.cu"
+//#include "version.cu"
 
 using namespace std;
 using namespace CMU462;
@@ -71,7 +71,7 @@ HDRImageBuffer* load_exr(const char* file_path) {
 int main( int argc, char** argv ) {
 
   // Verify Thrust Version
-  printThrustVersion();
+  //printThrustVersion();
 
   // get the options
   AppConfig config; int opt;
