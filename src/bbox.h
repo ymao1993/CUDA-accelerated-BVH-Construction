@@ -148,6 +148,32 @@ struct BBox {
    * \param c color of the wireframe
    */
   void draw(Color c) const;
+
+  /**
+   * Calculate and return an object's
+   * normalized position in the unit 
+   * cube defined by this BBox. if the
+   * object is not inside of the BBox, its
+   * position will be clamped into the BBox.
+   *
+   * \param pos the position to be evaluated
+   * \return the normalized position in the unit 
+   * cube, with x,y,z ranging from [0,1]
+   */
+  Vector3D getUnitcubePosOf(Vector3D pos)
+  {
+    Vector3D o2pos = pos - min;
+    if(!extent.isZero())
+    {
+      Vector3D normalized_pos = o2pos / extent;
+      return normalized_pos;
+    }
+    else
+    {
+      return Vector3D();
+    }
+  }
+
 };
 
 std::ostream& operator<<(std::ostream& os, const BBox& b);

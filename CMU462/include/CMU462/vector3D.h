@@ -130,11 +130,24 @@ class Vector3D {
     (*this) /= norm();
   }
 
+  /**
+   * check if the vector is zero vector
+   */
+  inline bool isZero()
+  {
+    return x == 0&& y==0 && z==0;
+  }
+
 }; // class Vector3D
 
 // left scalar multiplication
 inline Vector3D operator* ( const double& c, const Vector3D& v ) {
   return Vector3D( c * v.x, c * v.y, c * v.z );
+}
+
+// component-wise division
+inline Vector3D operator/ ( const Vector3D& u, const Vector3D& v ) {
+  return Vector3D( u.x/v.x , u.y/v.y , u.z/v.z );
 }
 
 // dot product (a.k.a. inner or scalar product)
