@@ -10,8 +10,8 @@
 /****choose which BVH construction method to use****/
 
 //#define BVH_DEFAULT
-#define BVH_MORTON_CODE_CPU
-//#define BVH_MORTON_CODE_GPU
+//#define BVH_MORTON_CODE_CPU
+#define BVH_MORTON_CODE_GPU
 
 using namespace std;
 
@@ -175,7 +175,7 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
 }
 //#ifdef BVH_DEFAULT
 
-#elif defined BVH_MORTON_CODE_CPU
+#elif (defined BVH_MORTON_CODE_CPU) || (defined BVH_MORTON_CODE_GPU)
 
 // Expands a 10-bit integer into 30 bits
 // by inserting 2 zeros after each bit.
@@ -282,8 +282,6 @@ int BVHAccel::findSplitPosition(int start, int end)
       return -1;
     }
 
-    //cout<<"common_prefix:" <<common_prefix << endl;
-
     // Use binary search to find where the next bit differs.
     // Specifically, we are looking for the highest object that
     // shares more than commonPrefix bits with the first one.
@@ -312,6 +310,8 @@ int BVHAccel::findSplitPosition(int start, int end)
   }
 }
 
+#if defined BVH_MORTON_CODE_CPU
+
 void BVHAccel::constructBVH(BVHNode* root)
 {
   if(root->range == 1) return;
@@ -335,6 +335,32 @@ void BVHAccel::constructBVH(BVHNode* root)
   constructBVH(root->r);
 }
 
+#elif defined BVH_MORTON_CODE_GPU
+
+void BVHAccel::constructBVH(BVHNode* root)
+{
+  if(root->range == 1) return;
+
+  int gamma = findSplitPosition(root->start, root->start + root->range -1);
+
+  if(gamma == -1) return;
+
+  int lchildSpan = gamma - root->start + 1;
+  BBox lchildBBox = generate_bounding_box(root->start, lchildSpan);
+  BVHNode* lchild = new BVHNode(lchildBBox, root->start, lchildSpan);
+
+  int rchildSpan = root->range - lchildSpan;
+  BBox rchildBBox = generate_bounding_box(gamma + 1, rchildSpan);
+  BVHNode* rchild = new BVHNode(rchildBBox, gamma + 1, rchildSpan);
+
+  root->l = lchild;
+  root->r = rchild;
+
+  constructBVH(root->l);
+  constructBVH(root->r);
+}
+
+#endif
 
 BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
                    size_t max_leaf_size) 
@@ -368,15 +394,6 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
 
 }
 //<--#elif defined BVH_MORTON_CODE_CPU
-
-#elif defined BVH_MORTON_CODE_GPU
-
-BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
-                   size_t max_leaf_size) 
-{
-  //TODO: implement BVH construction using MORTON code on GPU
-}
-//<--#elif defined BVH_MORTON_CODE_GPU
 
 #endif
 
