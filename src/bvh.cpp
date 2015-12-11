@@ -1,6 +1,6 @@
 /****choose which BVH construction method to use****/
 #define BVH_DEFAULT
-//#define BVH_MORTON_CODE_CPU
+#define BVH_MORTON_CODE_CPU
 //#define BVH_MORTON_CODE_GPU
 
 #ifdef BVH_MORTON_CODE_GPU
@@ -406,6 +406,7 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
 
   // delegate the binary radix tree construction process to GPU
   ParallelBRTreeBuilder br_tree_builder(sorted_morton_codes, primitives.size());
+  br_tree_builder.build();
   
 }
 
