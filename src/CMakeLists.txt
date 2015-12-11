@@ -42,6 +42,9 @@ set(APPLICATION_SOURCE
     # Application
     application.cpp
     main.cpp
+    
+    # Cuda
+    parallelBRTreeBuilder.cu
 )
 
 #-------------------------------------------------------------------------------
@@ -67,7 +70,7 @@ link_directories(
 #-------------------------------------------------------------------------------
 # Add executable
 #-------------------------------------------------------------------------------
-add_executable(pathtracer ${APPLICATION_SOURCE})
+cuda_add_executable(pathtracer ${APPLICATION_SOURCE})
 
 target_link_libraries( pathtracer
     CMU462 ${CMU462_LIBRARIES}

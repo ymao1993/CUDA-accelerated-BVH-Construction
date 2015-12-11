@@ -1,3 +1,12 @@
+/****choose which BVH construction method to use****/
+#define BVH_DEFAULT
+//#define BVH_MORTON_CODE_CPU
+//#define BVH_MORTON_CODE_GPU
+
+#ifdef BVH_MORTON_CODE_GPU
+#include "parallelBRTreeBuilder.h"
+#endif
+
 #include "bvh.h"
 
 #include "CMU462/CMU462.h"
@@ -6,12 +15,6 @@
 #include <iostream>
 #include <stack>
 #include <algorithm>
-
-/****choose which BVH construction method to use****/
-
-//#define BVH_DEFAULT
-//#define BVH_MORTON_CODE_CPU
-#define BVH_MORTON_CODE_GPU
 
 using namespace std;
 
@@ -220,11 +223,13 @@ bool BVHAccel::mortonCompare(Primitive* p1, Primitive* p2)
   return p1->morton_code < p2->morton_code;
 }
 
+#if (defined BVH_MORTON_CODE_CPU)
+
 /**
  * count the number of leading zeros
  * of a unsigned int value.
  */
- //TODO: chane it to _clz
+ //TODO: change it to _clz
 int countLeadingZero(unsigned int val)
 {
   int count = 0;
@@ -310,8 +315,6 @@ int BVHAccel::findSplitPosition(int start, int end)
   }
 }
 
-#if defined BVH_MORTON_CODE_CPU
-
 void BVHAccel::constructBVH(BVHNode* root)
 {
   if(root->range == 1) return;
@@ -334,33 +337,6 @@ void BVHAccel::constructBVH(BVHNode* root)
   constructBVH(root->l);
   constructBVH(root->r);
 }
-
-#elif defined BVH_MORTON_CODE_GPU
-
-void BVHAccel::constructBVH(BVHNode* root)
-{
-  if(root->range == 1) return;
-
-  int gamma = findSplitPosition(root->start, root->start + root->range -1);
-
-  if(gamma == -1) return;
-
-  int lchildSpan = gamma - root->start + 1;
-  BBox lchildBBox = generate_bounding_box(root->start, lchildSpan);
-  BVHNode* lchild = new BVHNode(lchildBBox, root->start, lchildSpan);
-
-  int rchildSpan = root->range - lchildSpan;
-  BBox rchildBBox = generate_bounding_box(gamma + 1, rchildSpan);
-  BVHNode* rchild = new BVHNode(rchildBBox, gamma + 1, rchildSpan);
-
-  root->l = lchild;
-  root->r = rchild;
-
-  constructBVH(root->l);
-  constructBVH(root->r);
-}
-
-#endif
 
 BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
                    size_t max_leaf_size) 
@@ -393,8 +369,47 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
   constructBVH(root);
 
 }
-//<--#elif defined BVH_MORTON_CODE_CPU
 
+#elif defined BVH_MORTON_CODE_GPU
+
+BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
+                   size_t max_leaf_size) 
+{
+  this->primitives = _primitives;
+
+  // edge case
+  if (primitives.empty()) {
+    return;
+  }
+
+  // calculate root AABB size
+  BBox bb;
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    bb.expand(primitives[i]->get_bbox());
+  }
+  root = new BVHNode(bb, 0, primitives.size());
+
+  // calculate morton code for each primitives
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    unsigned int morton_code = morton3D(bb.getUnitcubePosOf(primitives[i]->get_bbox().centroid()));
+    primitives[i]->morton_code = morton_code;
+  }
+
+  // sort primitives using morton code
+  std::sort(primitives.begin(), primitives.end(), mortonCompare);
+  
+  // extract sorted morton code for parallel binary radix tree construction
+  unsigned int sorted_morton_codes[primitives.size()];
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    sorted_morton_codes[i] = primitives[i]->morton_code;
+  }
+
+  // delegate the binary radix tree construction process to GPU
+  ParallelBRTreeBuilder br_tree_builder(sorted_morton_codes, primitives.size());
+  
+}
+
+#endif
 #endif
 
 static void rec_free(BVHNode *node) {
