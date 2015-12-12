@@ -3,6 +3,7 @@
 
 #include "static_scene/scene.h"
 #include "static_scene/aggregate.h"
+#include "parallelBRTreeBuilder.h"
 
 #include <vector>
 
@@ -119,7 +120,7 @@ class BVHAccel : public Aggregate {
  private:
   BVHNode* root; ///< root node of the BVH
 
-  /**** functions for BVH_MORTON_CODE_CPU ****/
+  //functions for morton code based BVH construction algorithm
   unsigned int expandBits(unsigned int v);
   unsigned int morton3D(float x, float y, float z);
   unsigned int morton3D(Vector3D pos);
@@ -127,9 +128,11 @@ class BVHAccel : public Aggregate {
   void constructBVH(BVHNode* root);
   int findSplitPosition(int start, int end);
   BBox generate_bounding_box(int start, int span);
-
-
-
+  void constructBVHFromBRTree();
+  void constructBVHNodeFromBRTree(int idx, BVHNode* root, int start, int end);
+  
+  BRTreeNode* leaf_nodes;
+  BRTreeNode* internal_nodes;
 };
 
 } // namespace StaticScene

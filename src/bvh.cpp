@@ -1,11 +1,7 @@
 /****choose which BVH construction method to use****/
-#define BVH_DEFAULT
+//#define BVH_DEFAULT
 #define BVH_MORTON_CODE_CPU
 //#define BVH_MORTON_CODE_GPU
-
-#ifdef BVH_MORTON_CODE_GPU
-#include "parallelBRTreeBuilder.h"
-#endif
 
 #include "bvh.h"
 
@@ -176,7 +172,6 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
     bstack.push(BVHBuildData(split_Bb, startr, ranger, &(*bdata.node)->r));
   }
 }
-//#ifdef BVH_DEFAULT
 
 #elif (defined BVH_MORTON_CODE_CPU) || (defined BVH_MORTON_CODE_GPU)
 
@@ -229,7 +224,6 @@ bool BVHAccel::mortonCompare(Primitive* p1, Primitive* p2)
  * count the number of leading zeros
  * of a unsigned int value.
  */
- //TODO: change it to _clz
 int countLeadingZero(unsigned int val)
 {
   int count = 0;
@@ -242,6 +236,18 @@ int countLeadingZero(unsigned int val)
 }
 
 /**
+ * generate bounding box
+ */
+BBox BVHAccel::generate_bounding_box(int start, int span)
+{
+   BBox bb;
+   for (size_t i = start; i < start + span; ++i) {
+     bb.expand(primitives[i]->get_bbox());
+   }
+   return bb;
+}
+
+/**
  * to judge if two values differes 
  * in bit position n
  */
@@ -249,19 +255,6 @@ int countLeadingZero(unsigned int val)
  {
   //printf("is_diff_at_bit(%p,%p,%d)\n", (void*)val1, (void*)val2, n);
   return val1>>(31-n) != val2>>(31-n);
- }
-
-/**
- * generate bounding box
- */
- //TODO: optimize it!
- BBox BVHAccel::generate_bounding_box(int start, int span)
- {
-    BBox bb;
-    for (size_t i = start; i < start + span; ++i) {
-      bb.expand(primitives[i]->get_bbox());
-    }
-    return bb;
  }
 
 /**
@@ -372,6 +365,59 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
 
 #elif defined BVH_MORTON_CODE_GPU
 
+/**
+ * construct BVH based on the binary radix tree
+ */
+void BVHAccel::constructBVHFromBRTree()
+{
+  constructBVHNodeFromBRTree(0, root, 0, (int)primitives.size());
+}
+
+void BVHAccel::constructBVHNodeFromBRTree(int idx, BVHNode* root, int start, int end)
+{
+  
+  bool is_leaf  = false;
+  bool is_null  = false;
+  int  child_idx= false;
+  
+  cout<<start<<"->"<<end<<endl;
+  
+  BRTreeNode* brt_node = &internal_nodes[idx];
+
+  child_idx = brt_node->getChildA(is_leaf,is_null);
+  if(!is_null)
+  {
+    if(is_leaf)
+    {
+      BBox bb = leaf_nodes[child_idx].bbox;
+      root->l = new BVHNode(bb, child_idx, 1);
+    }
+    else
+    {
+      BBox bb = internal_nodes[child_idx].bbox;
+      root->l = new BVHNode(bb, start, child_idx + 1 - start);
+      constructBVHNodeFromBRTree(child_idx, root->l, start, child_idx + 1);       
+    }
+  }
+  
+  child_idx = brt_node->getChildB(is_leaf,is_null);
+  if(!is_null)
+  {
+    if(is_leaf)
+    {
+      BBox bb = leaf_nodes[child_idx].bbox;
+      root->r = new BVHNode(bb, child_idx, 1);
+    }
+    else
+    {
+      BBox bb = internal_nodes[child_idx].bbox;
+      root->r = new BVHNode(bb, child_idx, end - child_idx);
+      constructBVHNodeFromBRTree(child_idx, root->r, child_idx, end); 
+    }
+  }
+  return;
+}
+
 BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
                    size_t max_leaf_size) 
 {
@@ -398,6 +444,11 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
   // sort primitives using morton code
   std::sort(primitives.begin(), primitives.end(), mortonCompare);
   
+  // extract bboxes array
+  std::vector<BBox> bboxes(primitives.size());
+  for(int i=0; i<primitives.size(); i++) bboxes[i] = primitives[i]->get_bbox();
+
+  
   // extract sorted morton code for parallel binary radix tree construction
   unsigned int sorted_morton_codes[primitives.size()];
   for (size_t i = 0; i < primitives.size(); ++i) {
@@ -405,9 +456,21 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
   }
 
   // delegate the binary radix tree construction process to GPU
-  ParallelBRTreeBuilder br_tree_builder(sorted_morton_codes, primitives.size());
-  br_tree_builder.build();
+  cout << "start building parallel brtree" << endl;
+  ParallelBRTreeBuilder builder(sorted_morton_codes, &bboxes[0], primitives.size());
+  builder.build();
+  cout << "done." << endl;
+
+  leaf_nodes = builder.get_leaf_nodes();
+  internal_nodes = builder.get_internal_nodes();
   
+  builder.freeDeviceMemory();
+ 
+  // construct BVH based on Binary Radix Tree
+  constructBVHFromBRTree();
+  
+  // free the host memory because I am a good programmer
+  builder.freeHostMemory();
 }
 
 #endif

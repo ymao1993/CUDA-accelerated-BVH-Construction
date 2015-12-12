@@ -5,6 +5,8 @@
 #include <algorithm>
 
 #include "CMU462/CMU462.h"
+#include "cuda_runtime.h"
+#include "cuda.h"
 
 #include "ray.h"
 
@@ -66,14 +68,17 @@ struct BBox {
    * given input.
    * \param bbox the bounding box to be included
    */
+  __host__ __device__
   void expand(const BBox& bbox) {
-    min.x = std::min(min.x, bbox.min.x);
-    min.y = std::min(min.y, bbox.min.y);
-    min.z = std::min(min.z, bbox.min.z);
-    max.x = std::max(max.x, bbox.max.x);
-    max.y = std::max(max.y, bbox.max.y);
-    max.z = std::max(max.z, bbox.max.z);
-    extent = max - min;
+    min.x = fmin(min.x, bbox.min.x);
+    min.y = fmin(min.y, bbox.min.y);
+    min.z = fmin(min.z, bbox.min.z);
+    max.x = fmax(max.x, bbox.max.x);
+    max.y = fmax(max.y, bbox.max.y);
+    max.z = fmax(max.z, bbox.max.z);
+    extent.x = max.x - min.x;
+    extent.y = max.y - min.y;
+    extent.z = max.z - min.z;
   }
 
   /**
