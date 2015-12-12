@@ -5,6 +5,8 @@
 #include <algorithm>
 
 #include "CMU462/CMU462.h"
+#include "cuda_runtime.h"
+#include "cuda.h"
 
 #include "ray.h"
 
@@ -66,14 +68,17 @@ struct BBox {
    * given input.
    * \param bbox the bounding box to be included
    */
+  __host__ __device__
   void expand(const BBox& bbox) {
-    min.x = std::min(min.x, bbox.min.x);
-    min.y = std::min(min.y, bbox.min.y);
-    min.z = std::min(min.z, bbox.min.z);
-    max.x = std::max(max.x, bbox.max.x);
-    max.y = std::max(max.y, bbox.max.y);
-    max.z = std::max(max.z, bbox.max.z);
-    extent = max - min;
+    min.x = fmin(min.x, bbox.min.x);
+    min.y = fmin(min.y, bbox.min.y);
+    min.z = fmin(min.z, bbox.min.z);
+    max.x = fmax(max.x, bbox.max.x);
+    max.y = fmax(max.y, bbox.max.y);
+    max.z = fmax(max.z, bbox.max.z);
+    extent.x = max.x - min.x;
+    extent.y = max.y - min.y;
+    extent.z = max.z - min.z;
   }
 
   /**
@@ -148,6 +153,32 @@ struct BBox {
    * \param c color of the wireframe
    */
   void draw(Color c) const;
+
+  /**
+   * Calculate and return an object's
+   * normalized position in the unit 
+   * cube defined by this BBox. if the
+   * object is not inside of the BBox, its
+   * position will be clamped into the BBox.
+   *
+   * \param pos the position to be evaluated
+   * \return the normalized position in the unit 
+   * cube, with x,y,z ranging from [0,1]
+   */
+  Vector3D getUnitcubePosOf(Vector3D pos)
+  {
+    Vector3D o2pos = pos - min;
+    if(!extent.isZero())
+    {
+      Vector3D normalized_pos = o2pos / extent;
+      return normalized_pos;
+    }
+    else
+    {
+      return Vector3D();
+    }
+  }
+
 };
 
 std::ostream& operator<<(std::ostream& os, const BBox& b);

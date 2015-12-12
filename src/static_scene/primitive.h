@@ -62,6 +62,10 @@ class Primitive {
    */
   virtual void drawOutline(const Color& c) const = 0;
 
+public:
+
+  unsigned int morton_code;
+
 };
 
 } // namespace StaticScene

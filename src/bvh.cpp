@@ -1,3 +1,8 @@
+/****choose which BVH construction method to use****/
+//#define BVH_DEFAULT
+#define BVH_MORTON_CODE_CPU
+//#define BVH_MORTON_CODE_GPU
+
 #include "bvh.h"
 
 #include "CMU462/CMU462.h"
@@ -5,10 +10,13 @@
 
 #include <iostream>
 #include <stack>
+#include <algorithm>
 
 using namespace std;
 
 namespace CMU462 { namespace StaticScene {
+
+#ifdef BVH_DEFAULT
 
 static const size_t kMaxNumBuckets = 12;
 
@@ -164,6 +172,309 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
     bstack.push(BVHBuildData(split_Bb, startr, ranger, &(*bdata.node)->r));
   }
 }
+
+#elif (defined BVH_MORTON_CODE_CPU) || (defined BVH_MORTON_CODE_GPU)
+
+// Expands a 10-bit integer into 30 bits
+// by inserting 2 zeros after each bit.
+unsigned int BVHAccel::expandBits(unsigned int v)
+{
+    v = (v * 0x00010001u) & 0xFF0000FFu;
+    v = (v * 0x00000101u) & 0x0F00F00Fu;
+    v = (v * 0x00000011u) & 0xC30C30C3u;
+    v = (v * 0x00000005u) & 0x49249249u;
+    return v;
+}
+
+// Calculates a 30-bit Morton code for the
+// given 3D point located within the unit cube [0,1].
+unsigned int BVHAccel::morton3D(float x, float y, float z)
+{
+    x = min(max(x * 1024.0f, 0.0f), 1023.0f);
+    y = min(max(y * 1024.0f, 0.0f), 1023.0f);
+    z = min(max(z * 1024.0f, 0.0f), 1023.0f);
+    unsigned int xx = expandBits((unsigned int)x);
+    unsigned int yy = expandBits((unsigned int)y);
+    unsigned int zz = expandBits((unsigned int)z);
+    return xx * 4 + yy * 2 + zz;
+}
+
+/**
+ * a wrapper to calculate morton code from
+ * the position of an object inside the
+ * unit cube.
+ */
+unsigned int BVHAccel::morton3D(Vector3D pos)
+{
+  return morton3D(pos.x,pos.y,pos.z);
+}
+
+/**
+ * comparer used to sort primitives acoording
+ * to their morton code.
+ */
+bool BVHAccel::mortonCompare(Primitive* p1, Primitive* p2)
+{
+  return p1->morton_code < p2->morton_code;
+}
+
+#if (defined BVH_MORTON_CODE_CPU)
+
+/**
+ * count the number of leading zeros
+ * of a unsigned int value.
+ */
+int countLeadingZero(unsigned int val)
+{
+  int count = 0;
+  while(val)
+  {
+    val >>= 1;
+    count ++;
+  }
+  return 32 - count;
+}
+
+/**
+ * generate bounding box
+ */
+BBox BVHAccel::generate_bounding_box(int start, int span)
+{
+   BBox bb;
+   for (size_t i = start; i < start + span; ++i) {
+     bb.expand(primitives[i]->get_bbox());
+   }
+   return bb;
+}
+
+/**
+ * to judge if two values differes 
+ * in bit position n
+ */
+ int is_diff_at_bit(unsigned int val1, unsigned int val2, int n)
+ {
+  //printf("is_diff_at_bit(%p,%p,%d)\n", (void*)val1, (void*)val2, n);
+  return val1>>(31-n) != val2>>(31-n);
+ }
+
+/**
+ * find the appropriate split position
+ */
+int BVHAccel::findSplitPosition(int start, int end)
+{
+  //printf("findSplitPosition(%d,%d)\n", start, end);
+  //return -1 if there is only 
+  //one primitive under this node.
+  if(start == end) 
+  {
+    return -1;
+  }
+  else
+  {
+    //cout<<"countCommonPrefixLength\n"<<endl;
+    int common_prefix = countLeadingZero(primitives[start]->morton_code ^ 
+                                         primitives[end]->morton_code);
+
+    if(common_prefix == 32)
+    {
+      return -1;
+    }
+
+    // Use binary search to find where the next bit differs.
+    // Specifically, we are looking for the highest object that
+    // shares more than commonPrefix bits with the first one.
+
+    int split = start; // initial guess
+    int step = end - start;
+    do
+    {
+        step = (step + 1) >> 1; // exponential decrease
+        int newSplit = split + step; // proposed new position
+
+        if (newSplit < end)
+        {
+            bool is_diff = is_diff_at_bit(primitives[start]->morton_code,
+                                          primitives[newSplit]->morton_code,
+                                          common_prefix);
+            if(!is_diff)
+            {
+              split = newSplit; // accept proposal
+            }
+        }
+    }
+    while (step > 1);
+
+    return split;
+  }
+}
+
+void BVHAccel::constructBVH(BVHNode* root)
+{
+  if(root->range == 1) return;
+
+  int gamma = findSplitPosition(root->start, root->start + root->range -1);
+
+  if(gamma == -1) return;
+
+  int lchildSpan = gamma - root->start + 1;
+  BBox lchildBBox = generate_bounding_box(root->start, lchildSpan);
+  BVHNode* lchild = new BVHNode(lchildBBox, root->start, lchildSpan);
+
+  int rchildSpan = root->range - lchildSpan;
+  BBox rchildBBox = generate_bounding_box(gamma + 1, rchildSpan);
+  BVHNode* rchild = new BVHNode(rchildBBox, gamma + 1, rchildSpan);
+
+  root->l = lchild;
+  root->r = rchild;
+
+  constructBVH(root->l);
+  constructBVH(root->r);
+}
+
+BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
+                   size_t max_leaf_size) 
+{
+
+  this->primitives = _primitives;
+
+  // edge case
+  if (primitives.empty()) {
+    return;
+  }
+
+  // calculate root AABB size
+  BBox bb;
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    bb.expand(primitives[i]->get_bbox());
+  }
+  root = new BVHNode(bb, 0, primitives.size());
+
+  // calculate morton code for each primitives
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    unsigned int morton_code = morton3D(bb.getUnitcubePosOf(primitives[i]->get_bbox().centroid()));
+    primitives[i]->morton_code = morton_code;
+  }
+
+  // sort primitives using morton code
+  std::sort(primitives.begin(), primitives.end(), mortonCompare);
+
+  //construct BVH based on the mortan code
+  constructBVH(root);
+
+}
+
+#elif defined BVH_MORTON_CODE_GPU
+
+/**
+ * construct BVH based on the binary radix tree
+ */
+void BVHAccel::constructBVHFromBRTree()
+{
+  constructBVHNodeFromBRTree(0, root, 0, (int)primitives.size());
+}
+
+void BVHAccel::constructBVHNodeFromBRTree(int idx, BVHNode* root, int start, int end)
+{
+  
+  bool is_leaf  = false;
+  bool is_null  = false;
+  int  child_idx= false;
+  
+  cout<<start<<"->"<<end<<endl;
+  
+  BRTreeNode* brt_node = &internal_nodes[idx];
+
+  child_idx = brt_node->getChildA(is_leaf,is_null);
+  if(!is_null)
+  {
+    if(is_leaf)
+    {
+      BBox bb = leaf_nodes[child_idx].bbox;
+      root->l = new BVHNode(bb, child_idx, 1);
+    }
+    else
+    {
+      BBox bb = internal_nodes[child_idx].bbox;
+      root->l = new BVHNode(bb, start, child_idx + 1 - start);
+      constructBVHNodeFromBRTree(child_idx, root->l, start, child_idx + 1);       
+    }
+  }
+  
+  child_idx = brt_node->getChildB(is_leaf,is_null);
+  if(!is_null)
+  {
+    if(is_leaf)
+    {
+      BBox bb = leaf_nodes[child_idx].bbox;
+      root->r = new BVHNode(bb, child_idx, 1);
+    }
+    else
+    {
+      BBox bb = internal_nodes[child_idx].bbox;
+      root->r = new BVHNode(bb, child_idx, end - child_idx);
+      constructBVHNodeFromBRTree(child_idx, root->r, child_idx, end); 
+    }
+  }
+  return;
+}
+
+BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
+                   size_t max_leaf_size) 
+{
+  this->primitives = _primitives;
+
+  // edge case
+  if (primitives.empty()) {
+    return;
+  }
+
+  // calculate root AABB size
+  BBox bb;
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    bb.expand(primitives[i]->get_bbox());
+  }
+  root = new BVHNode(bb, 0, primitives.size());
+
+  // calculate morton code for each primitives
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    unsigned int morton_code = morton3D(bb.getUnitcubePosOf(primitives[i]->get_bbox().centroid()));
+    primitives[i]->morton_code = morton_code;
+  }
+
+  // sort primitives using morton code
+  std::sort(primitives.begin(), primitives.end(), mortonCompare);
+  
+  // extract bboxes array
+  std::vector<BBox> bboxes(primitives.size());
+  for(int i=0; i<primitives.size(); i++) bboxes[i] = primitives[i]->get_bbox();
+
+  
+  // extract sorted morton code for parallel binary radix tree construction
+  unsigned int sorted_morton_codes[primitives.size()];
+  for (size_t i = 0; i < primitives.size(); ++i) {
+    sorted_morton_codes[i] = primitives[i]->morton_code;
+  }
+
+  // delegate the binary radix tree construction process to GPU
+  cout << "start building parallel brtree" << endl;
+  ParallelBRTreeBuilder builder(sorted_morton_codes, &bboxes[0], primitives.size());
+  builder.build();
+  cout << "done." << endl;
+
+  leaf_nodes = builder.get_leaf_nodes();
+  internal_nodes = builder.get_internal_nodes();
+  
+  builder.freeDeviceMemory();
+ 
+  // construct BVH based on Binary Radix Tree
+  constructBVHFromBRTree();
+  
+  // free the host memory because I am a good programmer
+  builder.freeHostMemory();
+}
+
+#endif
+#endif
 
 static void rec_free(BVHNode *node) {
   if (node->l) rec_free(node->l);
