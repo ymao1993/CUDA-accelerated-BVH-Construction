@@ -2,6 +2,7 @@
 
 #include "CMU462/misc.h"
 #include "CMU462/vector3D.h"
+#include "CMU462/vector2D.h"
 
 using std::cout;
 using std::endl;
@@ -121,8 +122,33 @@ Ray Camera::generate_ray(double x, double y) const {
   double sensor_y = sensor_height * (y - 0.5);
 
   Vector3D dir(sensor_x, sensor_y, -1);
+  // cout<<"dir(sensor_x, sensor_y, -1);"<<dir<<'\t'<<x<<'\t'<<y<<endl;
 
   return Ray(pos, c2w * dir.unit());
+}
+
+// ===RUI=== 
+Vector2D Camera::get_screen_pos(Vector3D p) const {
+
+  Vector3D dir = p - this->pos;
+  dir.normalize();
+  Matrix3x3 w2c(c2w.T());
+  dir = w2c * dir;
+
+  dir =  ((-1.0) / dir.z) * dir;
+
+  double sensor_height = 2.0 * tan( radians(vFov/2.0) );
+  double sensor_width = ar * sensor_height;
+
+        // cout<<dir<<"sensor_height "<<sensor_height<<" sensor_width "<<sensor_width<<endl;
+
+  double sensor_x = dir.x;
+  double sensor_y = dir.y;
+
+  double x = sensor_x / sensor_width;
+  double y = sensor_y / sensor_height;
+
+  return Vector2D(x, y);
 }
 
 

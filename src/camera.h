@@ -81,15 +81,18 @@ class Camera {
    */
   Ray generate_ray(double x, double y) const;
 
+  // Current position and target point (the point the camera is looking at).
+  Vector3D pos, targetPos;
+
+  // ===RUI=== 
+  Vector2D get_screen_pos(Vector3D p) const;
+
  private:
   // Computes pos, screenXDir, screenYDir from target, r, phi, theta.
   void compute_position();
 
   // Field of view aspect ratio, clipping planes.
   double hFov, vFov, ar, nClip, fClip;
-
-  // Current position and target point (the point the camera is looking at).
-  Vector3D pos, targetPos;
 
   // Orientation relative to target, and min & max distance from the target.
   double phi, theta, r, minR, maxR;

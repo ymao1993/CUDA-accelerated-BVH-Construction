@@ -45,6 +45,8 @@ Spectrum DiffuseBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
 // Mirror BSDF //
 
 Spectrum MirrorBSDF::f(const Vector3D& wo, const Vector3D& wi) {
+  // assume that wi IS NEVER the perfect mirror reflection of wo
+  // about the surface normal.
   return Spectrum();
 }
 

@@ -31,11 +31,13 @@ using std::max;
 namespace CMU462 {
 
 //#define ENABLE_RAY_LOGGING 1
+// #define ENABLE_RAY_TEST
 
 PathTracer::PathTracer(size_t ns_aa,
                        size_t max_ray_depth, size_t ns_area_light,
                        size_t ns_diff, size_t ns_glsy, size_t ns_refr,
-                       size_t num_threads, HDRImageBuffer* envmap) {
+                       size_t num_threads, HDRImageBuffer* envmap) 
+{
   state = INIT,
   this->ns_aa = ns_aa;
   set_sample_pattern();
@@ -349,7 +351,7 @@ void PathTracer::visualize_accel() const {
           // and rays this miss all geometry red
           if (rayLog[i].hit_t >= 0.0) {
               ray_t = rayLog[i].hit_t;
-              glColor4f(1.f, 1.f, 0.f, 0.1f);
+              glColor4f(0.f, 0.f, 0.f, 0.1f);
           } else {
               glColor4f(1.f, 0.f, 0.f, 0.1f);
           }
@@ -423,10 +425,13 @@ void PathTracer::set_sample_pattern() {
   }
 }
 
+
+// ======================================= TODO - trace_ray =======================================
 Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
 
   Intersection isect;
 
+  // ===RUI=== get light-scene intersection
   if (!bvh->intersect(r, &isect)) {
 
     // log ray miss
@@ -442,7 +447,8 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
   log_ray_hit(r, isect.t);
   #endif
 
-  Spectrum L_out = includeLe ? isect.bsdf->get_emission() : Spectrum();
+  // Spectrum L_out = includeLe ? isect.bsdf->get_emission() : Spectrum();
+  Spectrum L_out = isect.bsdf->get_emission(); // Le
 
   const Vector3D& hit_p = r.o + r.d * isect.t;
 
@@ -476,6 +482,7 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
         // the distance from point x to this point on the light source.
         // (pr is the probability of randomly selecting the random
         // sample point on the light source -- more on this in part 2)
+        // ===RUI=== shoot a ray to the light based on hit_p, return dir_to_light, &dist_to_light, &pr
         const Spectrum& light_L = light->sample_L(hit_p, &dir_to_light, &dist_to_light, &pr);
 
         // convert direction into coordinate space of the surface, where
@@ -532,6 +539,263 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
   return L_out + scale * f * trace_ray(rec, isect.bsdf->is_delta());
 }
 
+// ======================================= TODO - pathWeight =======================================
+float pathWeight(int i, int j){
+  return 1.f / float(i + j + 1);
+}
+
+// ======================================= TODO - trace_ray_bpt =======================================
+Spectrum PathTracer::trace_ray_bpt(const Ray &r, size_t x, size_t y) {
+  Spectrum Le;
+  for (SceneLight* light : scene->lights) {
+
+  /* Case I: Direct ray from light to eye */
+  Intersection isect;
+  if (bvh->intersect(r, &isect))
+  {
+      Spectrum L_out = isect.bsdf->get_emission(); // Le
+      sampleBuffer.update_pixel_add(L_out, x, y);
+  }
+
+    Ray lightRay(Vector3D(0, 0, 0), Vector3D(0, 0, 0));
+    float lightPdf;
+    Le = light->sampleLight(&lightRay, &lightPdf);
+    if (lightPdf != 0.0f)
+    {
+      Le = 1.f / lightPdf * Le;
+      render_paths(x, y, r, lightRay, Le);
+    }
+  }
+  return Le;
+}
+
+// ======================================= TODO - randomWalk =======================================
+
+void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye) {
+  ray.depth = 0;
+  Intersection its;
+  Spectrum cumulative(1.0f, 1.0f, 1.0f);
+
+  while(true)
+  {
+
+    if (!bvh->intersect(Ray(ray.o +  + EPS_D * ray.d, ray.d), &its)){
+      break;
+    }
+
+    BSDF *bsdf = its.bsdf;
+    float bsdfPdf;
+
+    Vertice v;
+    const Vector3D& hit_p = ray.o + ray.d * its.t;
+    v.p = hit_p + EPS_D * its.n;
+    v.n = its.n;
+    v.bsdf = bsdf;
+
+    // make a coordinate system for a hit point
+    // with N aligned with the Z direction.
+    Matrix3x3 o2w;
+    make_coord_space(o2w, its.n);
+    Matrix3x3 w2o(o2w.T());
+
+    if (eye)
+    {
+      // cout<<"EyeRay! ray.depth: "<<ray.depth<<endl;
+      v.wo = (w2o * (-ray.d)).unit();
+      cumulative *= its.bsdf->sample_f(v.wo, &v.wi, &bsdfPdf);
+      ray.d = (o2w * v.wi).unit();
+      cumulative *= std::abs(v.wi.z) / bsdfPdf;
+    }
+    else
+    {
+      const Ray &r = ray;
+      // log_ray_hit(r, its.t);
+
+      v.wi = (w2o * (-ray.d)).unit();
+      cumulative *= its.bsdf->sample_f(v.wi, &v.wo, &bsdfPdf);
+      ray.d = (o2w * v.wo).unit();
+      cumulative *= std::abs(v.wo.z) / bsdfPdf;
+    }
+    ray.depth ++;
+
+    v.cumulative = cumulative;
+    if (ray.depth > 10)
+      break;
+
+    vertices.push_back(v);
+    ray.o = hit_p;
+  }
+}
+
+// ======================================= TODO - evalPaths =======================================
+Spectrum PathTracer::evalPath(
+  const std::vector<Vertice> &eyePath,
+  const std::vector<Vertice> &lightPath,
+  int nEye, int nLight) const {
+
+    const Vertice &ev = eyePath[nEye - 1];
+    const Vertice &lv = lightPath[nLight - 1];
+
+    Spectrum L(1.0f, 1.0f, 1.0f);
+
+    if (nEye > 1)
+      L *= eyePath[nEye - 2].cumulative;
+    if (nLight > 1)
+      L *= lightPath[nLight - 2].cumulative;
+
+    Vector3D etl = lv.p - ev.p;
+    float lengthSquared = etl.norm2();
+    etl /= std::sqrt(lengthSquared);
+
+    float geoTerm = fabs(dot(etl, ev.n)) * fabs(dot(-etl, lv.n)) / lengthSquared;
+
+    if (lengthSquared < 0.05)
+      return Spectrum();
+
+    // make a coordinate system for a hit point
+    // with N aligned with the Z direction.
+    Matrix3x3 o2w1;
+    make_coord_space(o2w1, ev.n);
+    Matrix3x3 w2o1(o2w1.T());
+
+    // convert direction into coordinate space of the surface, where the surface normal is [0 0 1]
+    L *= ev.bsdf->f(ev.wi, (w2o1 * etl).unit());
+
+    Matrix3x3 o2w2;
+    make_coord_space(o2w2, lv.n);
+    Matrix3x3 w2o2(o2w2.T());
+
+    L *= lv.bsdf->f((w2o2 * (-etl)).unit(), lv.wo);
+
+    L *= geoTerm;
+
+    return L;
+}
+
+
+// ======================================= TODO - render_paths =======================================
+void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &lightRay, const Spectrum &Le){
+  Vector3D wi;
+  Vector3D onLight;
+
+
+
+  // if (L_out != Spectrum())
+  // {
+  //   
+  //   // return;
+  // }
+
+
+  std::vector<Vertice> m_eyePath;
+  std::vector<Vertice> m_lightPath;
+
+  randomWalk(eyeRay, m_eyePath, true);
+  randomWalk(lightRay, m_lightPath, false);
+
+  /* Case II and IV */
+  for (int i=1; i<m_eyePath.size()+1; i++){
+    const Vertice &ev = m_eyePath[i-1];
+
+    for (SceneLight* light : scene->lights) {
+
+      /* Case II: Classic Ray Tracing */
+
+      // shoot a ray to the light based on hit_p, return dir_to_light, &dist_to_light, &pr
+      Spectrum localLe = light->sampleLightFromP(ev.p, onLight, wi);
+
+      // make a coordinate system for a hit point
+      // with N aligned with the Z direction.
+      Matrix3x3 o2w;
+      make_coord_space(o2w, ev.n);
+      Matrix3x3 w2o(o2w.T());
+
+      // convert direction into coordinate space of the surface, where
+        // the surface normal is [0 0 1]
+      const Vector3D& localWi = (w2o * wi).unit();
+      if (localWi.z < 0) continue;
+
+      // do shadow ray test
+      if (!bvh->intersect(Ray(ev.p + EPS_D * ev.n, (onLight - ev.p).unit(),
+                              (onLight - ev.p).norm() - EPS_D))) {
+        if (i > 1)
+          localLe *= m_eyePath[i-2].cumulative;
+
+        // note that computing dot(n,w_in) is simple
+        // in surface coordinates since the normal is (0,0,1)
+        double cos_theta = localWi.z;
+
+        Spectrum s = localLe * ev.bsdf->f(ev.wo, ev.wi) * cos_theta * pathWeight(i, 0);
+        s = (1.0 / double(ns_aa)) * s;
+
+        sampleBuffer.update_pixel_add(s, x, y);
+      }
+
+      /* Case IV: Bi-Path */
+
+      for (int j=1; j<m_lightPath.size()+1; j++){
+        const Vertice &lv = m_lightPath[j-1];
+        // do shadow ray test
+        if (!bvh->intersect(Ray(ev.p + EPS_D * ev.n, (lv.p - ev.p).unit(),
+                                (lv.p - ev.p).norm() - EPS_D))) {
+
+          Spectrum s = Le * evalPath(m_eyePath, m_lightPath, i, j) * pathWeight(i, j);
+          s = (1.0 / double(ns_aa)) * s;
+
+          sampleBuffer.update_pixel_add(s, x, y);
+        }
+      }
+
+    }
+  }
+
+  /* Case III: LightPath directly to eye */
+
+  for (int j = 1; j < m_lightPath.size()+1; j++){
+    const Vertice &lv = m_lightPath[j-1];
+
+    if (!bvh->intersect(Ray(lv.p + EPS_D * lv.n, (camera->pos - lv.p).unit(),
+                                (camera->pos - lv.p).norm() - EPS_D))) {
+      Spectrum localLe = Le;
+      Vector3D wo = camera->pos - lv.p;
+      float lengthSquared = wo.norm2();
+      wo /= std::sqrt(lengthSquared);
+
+      if (lengthSquared < 0.05)
+        continue;
+
+      Matrix3x3 o2w;
+      make_coord_space(o2w, lv.n);
+      Matrix3x3 w2o(o2w.T());
+      Vector3D localWo = (w2o * wo).unit();
+
+      if (j > 1)
+        localLe *= m_lightPath[j-2].cumulative;
+
+      localLe *= lv.bsdf->f(lv.wi, localWo) * std::abs(localWo.z) * (1.f / lengthSquared);
+
+      Spectrum s = localLe * pathWeight(0, j);
+      s = (1.0 / double(ns_aa)) * s;
+
+      Vector2D pixelPos = camera->get_screen_pos(lv.p);
+      size_t screenW = sampleBuffer.w;
+      size_t screenH = sampleBuffer.h;
+      double x = (pixelPos.x + 0.5) * screenW;
+      double y = (pixelPos.y + 0.5) * screenH;
+
+      // cout<<screenW<<'\t'<<screenH<<endl;
+      // cout<<x<<'\t'<<y<<endl;
+
+      if (x > 0 && x < screenW && y >0 && y < screenH){
+        // cout<<"                                add "<<x<<'\t'<<y<<'\t'<<"s = "<<s<<endl;
+        sampleBuffer.update_pixel_add(s, x, y);
+      }
+    }
+  }
+}
+
+// ======================================= TODO - raytrace_pixel =======================================
+
 Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
 
 
@@ -542,7 +806,11 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
     Ray r = camera->generate_ray((x + 0.5) / screenW,
                                  (y + 0.5) / screenH);
     r.depth = max_ray_depth;
-    return trace_ray(r);
+
+    Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
+    return trace_ray_bpt_spt;
+
+    // return trace_ray(r); // use traditional ray-traycing
   }
 
   Spectrum s = Spectrum();
@@ -556,7 +824,8 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
         double dy = (subY + p.y) * cellSize;
         Ray r = camera->generate_ray((x + dx) / screenW, (y + dy) / screenH);
         r.depth = max_ray_depth;
-        s += trace_ray(r, true);
+        // s += trace_ray(r, true); // use traditional ray-traycing
+        Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
       }
     }
   }
@@ -564,9 +833,11 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
   return s * (1.0 / ns_aa);
 }
 
+// ======================================= TODO - raytrace_pixel =======================================
 
 void PathTracer::raytrace_tile(int tile_x, int tile_y,
-                               int tile_w, int tile_h) {
+                               int tile_w, int tile_h) 
+{
 
   size_t w = sampleBuffer.w;
   size_t h = sampleBuffer.h;
@@ -585,12 +856,13 @@ void PathTracer::raytrace_tile(int tile_x, int tile_y,
     if (!continueRaytracing) return;
     for (size_t x = tile_start_x; x < tile_end_x; x++) {
         Spectrum s = raytrace_pixel(x, y);
-        sampleBuffer.update_pixel(s, x, y);
+        // sampleBuffer.update_pixel(s, x, y);
     }
   }
 
   tile_samples[tile_idx_x + tile_idx_y * num_tiles_w] += 1;
-  sampleBuffer.toColor(frameBuffer, tile_start_x, tile_start_y, tile_end_x, tile_end_y);
+  // sampleBuffer.toColor(frameBuffer, tile_start_x, tile_start_y, tile_end_x, tile_end_y);
+  sampleBuffer.toColor(frameBuffer, 0, 0, w, h); // need to also render tiles in case (iii) which does not originate in the camera ray (pixel)
 }
 
 void PathTracer::worker_thread() {

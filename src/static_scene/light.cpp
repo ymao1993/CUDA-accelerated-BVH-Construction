@@ -14,6 +14,7 @@ DirectionalLight::DirectionalLight(const Spectrum& rad,
   dirToLight = -lightDir.unit();
 }
 
+// ===RUI=== wi: dir_to_light (a vector)
 Spectrum DirectionalLight::sample_L(const Vector3D& p, Vector3D* wi,
                                     float* distToLight, float* pdf) const {
   *wi = dirToLight;
@@ -21,6 +22,15 @@ Spectrum DirectionalLight::sample_L(const Vector3D& p, Vector3D* wi,
   *pdf = 1.0;
   return radiance;
 }
+
+// ===RUI=== wi: dir_to_light (a vector) =========TODO=========
+// Spectrum DirectionalLight::sampleLight(Ray* lightRay, float* lightPdf) const {
+//   lightRay->d = -dirToLight;
+//   lightRay->o = 
+//   *distToLight = INF_D;
+//   *lightPdf = 1.0;
+//   return radiance;
+// }
 
 // Infinite Hemisphere Light //
 
@@ -63,6 +73,7 @@ SpotLight::SpotLight(const Spectrum& rad, const Vector3D& pos,
 
 }
 
+// ===RUI=== never gonna shoot the light anyway
 Spectrum SpotLight::sample_L(const Vector3D& p, Vector3D* wi,
                              float* distToLight, float* pdf) const {
   return Spectrum();
@@ -80,7 +91,6 @@ AreaLight::AreaLight(const Spectrum& rad,
 
 Spectrum AreaLight::sample_L(const Vector3D& p, Vector3D* wi,
                              float* distToLight, float* pdf) const {
-
   const Vector2D& sample = sampler.get_sample() - Vector2D(0.5f, 0.5f);
   const Vector3D& d = position + sample.x * dim_x + sample.y * dim_y - p;
   float cosTheta = dot(d, direction);
@@ -90,6 +100,38 @@ Spectrum AreaLight::sample_L(const Vector3D& p, Vector3D* wi,
   *distToLight = dist;
   *pdf = sqDist / (area * fabs(cosTheta));
   return cosTheta < 0 ? radiance : Spectrum();
+};
+
+// ===RUI=== 
+Spectrum AreaLight::sampleLightFromP(const Vector3D& p, Vector3D& onLight, Vector3D& wi) const {
+  const Vector2D& sample = sampler.get_sample() - Vector2D(0.5f, 0.5f);
+  onLight = position + sample.x * dim_x + sample.y * dim_y;
+  const Vector3D& d = position + sample.x * dim_x + sample.y * dim_y - p;
+  float cosTheta = dot(d, direction);
+  float sqDist = d.norm2();
+  float dist = sqrt(sqDist);
+  wi = d / dist;
+  float pdf = sqDist / (area * fabs(cosTheta));
+  return cosTheta < 0 ? 1.f / pdf * radiance : Spectrum();
+};
+
+// ===RUI=== NEW: get a light sample from the light
+Spectrum AreaLight::sampleLight(Ray* lightRay, float* lightPdf) const {
+  const Vector2D& sample = sampler.get_sample() - Vector2D(0.5f, 0.5f);
+  const Vector3D& d = position + sample.x * dim_x + sample.y * dim_y;
+  lightRay->o = d;
+  float theta = ((double) rand() / (RAND_MAX)) * M_PI / 2.0;
+  float phi = ((double) rand() / (RAND_MAX)) * M_PI * 2.0;
+
+  UniformHemisphereSampler3D sampler;
+  Vector3D localD = sampler.get_sample();
+  Matrix3x3 w2o;
+  make_coord_space(w2o, direction);
+  Matrix3x3 o2w(w2o.T());
+  lightRay->d = (o2w * localD).unit();
+
+  *lightPdf = 1.0 / (area * 2.0 * M_PI);
+  return radiance;
 };
 
 // Sphere Light //

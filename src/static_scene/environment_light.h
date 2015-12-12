@@ -14,6 +14,12 @@ class EnvironmentLight : public SceneLight {
   ~EnvironmentLight();
   Spectrum sample_L(const Vector3D& p, Vector3D* wi, float* distToLight,
                     float* pdf) const;
+  Spectrum sampleLight(Ray* lightRay, float* lightPdf) const {
+    return Spectrum();
+  }
+  Spectrum sampleLightFromP(const Vector3D& p, Vector3D& onLight, Vector3D& wi) const {
+    return Spectrum();
+  }
   bool is_delta_light() const { return false; }
   Spectrum sample_dir(const Ray& r) const;
  

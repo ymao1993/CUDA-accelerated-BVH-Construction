@@ -41,6 +41,17 @@ struct WorkItem {
 
 };
 
+// ===RUI=== 
+struct Vertice {
+  Vector3D p;
+  Vector3D n;
+  Vector3D dgdu, dudv;
+  Vector3D wi, wo;
+  BSDF *bsdf;
+  Spectrum cumulative;
+};
+
+
 /**
  * A pathtracer with BVH accelerator and BVH visualization capabilities.
  * It is always in exactly one of the following states:
@@ -166,6 +177,25 @@ class PathTracer {
    * \param includeLe if emission value should be added to output
    */
   Spectrum trace_ray(const Ray& ray, bool includeLe = false);
+
+  /**
+   * Trace an ray in the scene with Bidirectional Path Tracing.
+   * \param includeLe if emission value should be added to output
+   */
+  Spectrum trace_ray_bpt(const Ray &r, size_t x, size_t y);
+
+  // ===RUI=== 
+  void randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye);
+
+  // ===RUI=== 
+  Spectrum evalPath(
+  const std::vector<Vertice> &eyePath,
+  const std::vector<Vertice> &lightPath,
+  int nEye, int nLight) const;
+
+  // ===RUI=== 
+  void render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &lightRay, const Spectrum &Le);
+
 
   /**
    * Trace a camera ray given by the pixel coordinate.

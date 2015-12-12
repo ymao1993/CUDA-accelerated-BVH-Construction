@@ -115,6 +115,13 @@ struct HDRImageBuffer {
     data[x + y * w] = s;
   }
 
+  void update_pixel_add(const Spectrum& s, size_t x, size_t y) {
+    // assert(0 <= x && x < w);
+    // assert(0 <= y && y < h);
+    data[x + y * w] += s;
+  }
+
+
   /**
    * Update the color of a given pixel. Blend new pixel color with current
    * pixel data in the buffer according to the blending factor. The result
