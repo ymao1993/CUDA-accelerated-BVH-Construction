@@ -32,6 +32,7 @@ namespace CMU462 {
 
 //#define ENABLE_RAY_LOGGING 1
 // #define ENABLE_RAY_TEST
+// #define ENABLE_PATH_TRACING
 
 PathTracer::PathTracer(size_t ns_aa,
                        size_t max_ray_depth, size_t ns_area_light,
@@ -431,7 +432,6 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
 
   Intersection isect;
 
-  // ===RUI=== get light-scene intersection
   if (!bvh->intersect(r, &isect)) {
 
     // log ray miss
@@ -447,8 +447,7 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
   log_ray_hit(r, isect.t);
   #endif
 
-  // Spectrum L_out = includeLe ? isect.bsdf->get_emission() : Spectrum();
-  Spectrum L_out = isect.bsdf->get_emission(); // Le
+  Spectrum L_out = includeLe ? isect.bsdf->get_emission() : Spectrum();
 
   const Vector3D& hit_p = r.o + r.d * isect.t;
 
@@ -482,7 +481,6 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
         // the distance from point x to this point on the light source.
         // (pr is the probability of randomly selecting the random
         // sample point on the light source -- more on this in part 2)
-        // ===RUI=== shoot a ray to the light based on hit_p, return dir_to_light, &dist_to_light, &pr
         const Spectrum& light_L = light->sample_L(hit_p, &dir_to_light, &dist_to_light, &pr);
 
         // convert direction into coordinate space of the surface, where
@@ -557,29 +555,30 @@ Spectrum PathTracer::trace_ray_bpt(const Ray &r, size_t x, size_t y) {
       sampleBuffer.update_pixel_add(L_out, x, y);
   }
 
-    Ray lightRay(Vector3D(0, 0, 0), Vector3D(0, 0, 0));
-    float lightPdf;
-    Le = light->sampleLight(&lightRay, &lightPdf);
-    if (lightPdf != 0.0f)
-    {
-      Le = 1.f / lightPdf * Le;
-      render_paths(x, y, r, lightRay, Le);
-    }
+  Ray lightRay(Vector3D(0, 0, 0), Vector3D(0, 0, 0));
+  float lightPdf;
+  Le = light->sampleLight(&lightRay, &lightPdf);
+  if (lightPdf != 0.0f)
+  {
+    Le = 1.f / lightPdf * Le;
+    render_paths(x, y, r, lightRay, Le);
+  }
   }
   return Le;
 }
 
 // ======================================= TODO - randomWalk =======================================
 
-void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye) {
+void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye, Spectrum emission) {
   ray.depth = 0;
   Intersection its;
   Spectrum cumulative(1.0f, 1.0f, 1.0f);
+  // if (!eye) cumulative *= emission;
 
   while(true)
   {
 
-    if (!bvh->intersect(Ray(ray.o +  + EPS_D * ray.d, ray.d), &its)){
+    if (!bvh->intersect(Ray(ray.o, ray.d), &its)){
       break;
     }
 
@@ -602,7 +601,8 @@ void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye) {
     {
       // cout<<"EyeRay! ray.depth: "<<ray.depth<<endl;
       v.wo = (w2o * (-ray.d)).unit();
-      cumulative *= its.bsdf->sample_f(v.wo, &v.wi, &bsdfPdf);
+      // cumulative = cumulative * its.bsdf->sample_f(v.wo, &v.wi, &bsdfPdf);
+      cumulative = cumulative * its.bsdf->sample_f(v.wo, &v.wi, &bsdfPdf) + its.bsdf->get_emission();
       ray.d = (o2w * v.wi).unit();
       cumulative *= std::abs(v.wi.z) / bsdfPdf;
     }
@@ -612,7 +612,8 @@ void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye) {
       // log_ray_hit(r, its.t);
 
       v.wi = (w2o * (-ray.d)).unit();
-      cumulative *= its.bsdf->sample_f(v.wi, &v.wo, &bsdfPdf);
+      cumulative = cumulative * its.bsdf->sample_f(v.wi, &v.wo, &bsdfPdf);
+      // cumulative = cumulative * its.bsdf->sample_f(v.wi, &v.wo, &bsdfPdf) + its.bsdf->get_emission();
       ray.d = (o2w * v.wo).unit();
       cumulative *= std::abs(v.wo.z) / bsdfPdf;
     }
@@ -623,7 +624,7 @@ void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye) {
       break;
 
     vertices.push_back(v);
-    ray.o = hit_p;
+    ray.o = hit_p + ray.d * EPS_D * 10.0;
   }
 }
 
@@ -678,20 +679,11 @@ void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &
   Vector3D wi;
   Vector3D onLight;
 
-
-
-  // if (L_out != Spectrum())
-  // {
-  //   
-  //   // return;
-  // }
-
-
   std::vector<Vertice> m_eyePath;
   std::vector<Vertice> m_lightPath;
 
-  randomWalk(eyeRay, m_eyePath, true);
-  randomWalk(lightRay, m_lightPath, false);
+  randomWalk(eyeRay, m_eyePath, true, Le);
+  randomWalk(lightRay, m_lightPath, false, Le);
 
   /* Case II and IV */
   for (int i=1; i<m_eyePath.size()+1; i++){
@@ -807,10 +799,12 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
                                  (y + 0.5) / screenH);
     r.depth = max_ray_depth;
 
-    Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
-    return trace_ray_bpt_spt;
-
-    // return trace_ray(r); // use traditional ray-traycing
+    #ifdef ENABLE_PATH_TRACING
+      return trace_ray(r); // use traditional ray-traycing
+    #else
+      Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
+      return trace_ray_bpt_spt;
+    #endif
   }
 
   Spectrum s = Spectrum();
@@ -824,8 +818,12 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
         double dy = (subY + p.y) * cellSize;
         Ray r = camera->generate_ray((x + dx) / screenW, (y + dy) / screenH);
         r.depth = max_ray_depth;
-        // s += trace_ray(r, true); // use traditional ray-traycing
-        Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
+        
+        #ifdef ENABLE_PATH_TRACING
+          s += trace_ray(r, true); // use traditional ray-traycing
+        #else
+          Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
+        #endif
       }
     }
   }
@@ -856,13 +854,19 @@ void PathTracer::raytrace_tile(int tile_x, int tile_y,
     if (!continueRaytracing) return;
     for (size_t x = tile_start_x; x < tile_end_x; x++) {
         Spectrum s = raytrace_pixel(x, y);
-        // sampleBuffer.update_pixel(s, x, y);
+         #ifdef ENABLE_PATH_TRACING
+          sampleBuffer.update_pixel(s, x, y);
+        #endif
     }
   }
 
   tile_samples[tile_idx_x + tile_idx_y * num_tiles_w] += 1;
-  // sampleBuffer.toColor(frameBuffer, tile_start_x, tile_start_y, tile_end_x, tile_end_y);
-  sampleBuffer.toColor(frameBuffer, 0, 0, w, h); // need to also render tiles in case (iii) which does not originate in the camera ray (pixel)
+
+  #ifdef ENABLE_PATH_TRACING
+    sampleBuffer.toColor(frameBuffer, tile_start_x, tile_start_y, tile_end_x, tile_end_y);
+  #else
+    sampleBuffer.toColor(frameBuffer, 0, 0, w, h); // need to also render tiles in case (iii) which does not originate in the camera ray (pixel)
+  #endif
 }
 
 void PathTracer::worker_thread() {
