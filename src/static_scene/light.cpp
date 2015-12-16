@@ -23,15 +23,6 @@ Spectrum DirectionalLight::sample_L(const Vector3D& p, Vector3D* wi,
   return radiance;
 }
 
-// ===RUI=== wi: dir_to_light (a vector) =========TODO=========
-// Spectrum DirectionalLight::sampleLight(Ray* lightRay, float* lightPdf) const {
-//   lightRay->d = -dirToLight;
-//   lightRay->o = 
-//   *distToLight = INF_D;
-//   *lightPdf = 1.0;
-//   return radiance;
-// }
-
 // Infinite Hemisphere Light //
 
 InfiniteHemisphereLight::InfiniteHemisphereLight(const Spectrum& rad)
@@ -102,7 +93,10 @@ Spectrum AreaLight::sample_L(const Vector3D& p, Vector3D* wi,
   return cosTheta < 0 ? radiance : Spectrum();
 };
 
-// ===RUI=== 
+/**
+ * By Rui.
+ * Sample the light from a point P in the space
+ **/
 Spectrum AreaLight::sampleLightFromP(const Vector3D& p, Vector3D& onLight, Vector3D& wi) const {
   const Vector2D& sample = sampler.get_sample() - Vector2D(0.5f, 0.5f);
   onLight = position + sample.x * dim_x + sample.y * dim_y;
@@ -115,7 +109,10 @@ Spectrum AreaLight::sampleLightFromP(const Vector3D& p, Vector3D& onLight, Vecto
   return cosTheta < 0 ? 1.f / pdf * radiance : Spectrum();
 };
 
-// ===RUI=== NEW: get a light sample from the light
+/**
+ * By Rui.
+ * Sample the light. Get the point in the light, and the ray direction.
+ **/
 Spectrum AreaLight::sampleLight(Ray* lightRay, float* lightPdf) const {
   const Vector2D& sample = sampler.get_sample() - Vector2D(0.5f, 0.5f);
   const Vector3D& d = position + sample.x * dim_x + sample.y * dim_y;

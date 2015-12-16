@@ -31,8 +31,9 @@ using std::max;
 namespace CMU462 {
 
 //#define ENABLE_RAY_LOGGING 1
-// #define ENABLE_RAY_TEST
-// #define ENABLE_PATH_TRACING
+//#define ENABLE_RAY_TEST
+
+//#define ENABLE_PATH_TRACING /* Quote this to enable Bidirectional Path Tracing; Unquote this to use classic path tracing */
 
 PathTracer::PathTracer(size_t ns_aa,
                        size_t max_ray_depth, size_t ns_area_light,
@@ -427,7 +428,10 @@ void PathTracer::set_sample_pattern() {
 }
 
 
-// ======================================= TODO - trace_ray =======================================
+// ======================================= trace_ray =======================================
+/**
+ * the old ray-tracer, Unchanged
+ **/
 Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
 
   Intersection isect;
@@ -538,16 +542,23 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool includeLe) {
 }
 
 // ======================================= TODO - pathWeight =======================================
+/**
+ * get weight for a path
+ **/
 float pathWeight(int i, int j){
   return 1.f / float(i + j + 1);
 }
 
 // ======================================= TODO - trace_ray_bpt =======================================
+/**
+ * the new BDPT ray-tracer
+ **/
 Spectrum PathTracer::trace_ray_bpt(const Ray &r, size_t x, size_t y) {
   Spectrum Le;
   for (SceneLight* light : scene->lights) {
 
   /* Case I: Direct ray from light to eye */
+    // Eye path length = 0; Light path length = 0
   Intersection isect;
   if (bvh->intersect(r, &isect))
   {
@@ -568,11 +579,17 @@ Spectrum PathTracer::trace_ray_bpt(const Ray &r, size_t x, size_t y) {
 }
 
 // ======================================= TODO - randomWalk =======================================
-
+/**
+ * the random walk: generate Eye path and Light path with sample_f() (sample the BSDF);
+ * \param cumulative The total attenuation factor
+ * \param vertices Store the path
+ * \param eye Eye path (true); Light path (false)
+ * \param emission Light spectrum
+ **/
 void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye, Spectrum emission) {
   ray.depth = 0;
   Intersection its;
-  Spectrum cumulative(1.0f, 1.0f, 1.0f);
+  Spectrum cumulative(1.0f, 1.0f, 1.0f); // Cumulative attenuation factor
   // if (!eye) cumulative *= emission;
 
   while(true)
@@ -601,7 +618,6 @@ void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye, S
     {
       // cout<<"EyeRay! ray.depth: "<<ray.depth<<endl;
       v.wo = (w2o * (-ray.d)).unit();
-      // cumulative = cumulative * its.bsdf->sample_f(v.wo, &v.wi, &bsdfPdf);
       cumulative = cumulative * its.bsdf->sample_f(v.wo, &v.wi, &bsdfPdf) + its.bsdf->get_emission();
       ray.d = (o2w * v.wi).unit();
       cumulative *= std::abs(v.wi.z) / bsdfPdf;
@@ -610,25 +626,26 @@ void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye, S
     {
       const Ray &r = ray;
       // log_ray_hit(r, its.t);
-
       v.wi = (w2o * (-ray.d)).unit();
       cumulative = cumulative * its.bsdf->sample_f(v.wi, &v.wo, &bsdfPdf);
-      // cumulative = cumulative * its.bsdf->sample_f(v.wi, &v.wo, &bsdfPdf) + its.bsdf->get_emission();
       ray.d = (o2w * v.wo).unit();
       cumulative *= std::abs(v.wo.z) / bsdfPdf;
     }
     ray.depth ++;
 
     v.cumulative = cumulative;
-    if (ray.depth > 10)
+    if (ray.depth > 10) // Repeat extending the path until a maximun length
       break;
 
     vertices.push_back(v);
-    ray.o = hit_p + ray.d * EPS_D * 10.0;
+    ray.o = hit_p + ray.d * EPS_D * 10.0; // Origion of the next light
   }
 }
 
 // ======================================= TODO - evalPaths =======================================
+/**
+ * Get total attenuation along a path in case IV (where Eye path length >= 1 && Light path length >= 1)\
+ **/
 Spectrum PathTracer::evalPath(
   const std::vector<Vertice> &eyePath,
   const std::vector<Vertice> &lightPath,
@@ -639,11 +656,13 @@ Spectrum PathTracer::evalPath(
 
     Spectrum L(1.0f, 1.0f, 1.0f);
 
+    // Accumulate attenuation from last reflection
     if (nEye > 1)
       L *= eyePath[nEye - 2].cumulative;
     if (nLight > 1)
       L *= lightPath[nLight - 2].cumulative;
 
+    // Get the Geometric Term
     Vector3D etl = lv.p - ev.p;
     float lengthSquared = etl.norm2();
     etl /= std::sqrt(lengthSquared);
@@ -675,6 +694,9 @@ Spectrum PathTracer::evalPath(
 
 
 // ======================================= TODO - render_paths =======================================
+/**
+ * Render paths across light and eye paths in Case II, III, and IV
+ **/
 void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &lightRay, const Spectrum &Le){
   Vector3D wi;
   Vector3D onLight;
@@ -692,6 +714,7 @@ void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &
     for (SceneLight* light : scene->lights) {
 
       /* Case II: Classic Ray Tracing */
+       // Eye path length > 0; Light path length = 0
 
       // shoot a ray to the light based on hit_p, return dir_to_light, &dist_to_light, &pr
       Spectrum localLe = light->sampleLightFromP(ev.p, onLight, wi);
@@ -724,6 +747,7 @@ void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &
       }
 
       /* Case IV: Bi-Path */
+       // Eye path length > 0; Light path length > 0
 
       for (int j=1; j<m_lightPath.size()+1; j++){
         const Vertice &lv = m_lightPath[j-1];
@@ -742,6 +766,7 @@ void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &
   }
 
   /* Case III: LightPath directly to eye */
+   // Eye path length = 0; Light path length > 0
 
   for (int j = 1; j < m_lightPath.size()+1; j++){
     const Vertice &lv = m_lightPath[j-1];
@@ -769,17 +794,14 @@ void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &
       Spectrum s = localLe * pathWeight(0, j);
       s = (1.0 / double(ns_aa)) * s;
 
+      // Where in the film does this ray shoot to?
       Vector2D pixelPos = camera->get_screen_pos(lv.p);
       size_t screenW = sampleBuffer.w;
       size_t screenH = sampleBuffer.h;
       double x = (pixelPos.x + 0.5) * screenW;
       double y = (pixelPos.y + 0.5) * screenH;
 
-      // cout<<screenW<<'\t'<<screenH<<endl;
-      // cout<<x<<'\t'<<y<<endl;
-
       if (x > 0 && x < screenW && y >0 && y < screenH){
-        // cout<<"                                add "<<x<<'\t'<<y<<'\t'<<"s = "<<s<<endl;
         sampleBuffer.update_pixel_add(s, x, y);
       }
     }
@@ -787,7 +809,9 @@ void PathTracer::render_paths(size_t x, size_t y, const Ray &eyeRay, const Ray &
 }
 
 // ======================================= TODO - raytrace_pixel =======================================
-
+/**
+ * Modified to adapt for BDPT option. Generate eye and light path from an eye (camera) ray, and then render
+ **/
 Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
 
 
