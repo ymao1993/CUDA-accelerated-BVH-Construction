@@ -28,7 +28,72 @@
 </ul>
 
 <h1>
-<a id="project-proposal" class="anchor" href="#project-proposal" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project Proposal</h1>
+<a id="source-code-click-to-access-the-repository" class="anchor" href="#source-code-click-to-access-the-repository" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="">Source Code (Click to Access the Repository)</a>
+</h1>
+
+<p>Also submitted to the afs cloud at </p>
+
+<blockquote>
+<p>/afs/cs/academic/class/15462-f15-users/<strong>ymao1</strong>/asst5/</p>
+</blockquote>
+
+<h1>
+<a id="final-report-in-pdf-15-pages" class="anchor" href="#final-report-in-pdf-15-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="">Final Report (in .pdf; 15+ pages)</a>
+</h1>
+
+<h1>
+<a id="a-brief-overview-of-the-project" class="anchor" href="#a-brief-overview-of-the-project" aria-hidden="true"><span class="octicon octicon-link"></span></a>A Brief Overview of the Project</h1>
+
+<h2>
+<a id="what-did-we-do" class="anchor" href="#what-did-we-do" aria-hidden="true"><span class="octicon octicon-link"></span></a>What did we do</h2>
+
+<p>We complemented two tasks according to the proposal:</p>
+
+<p>1.
+2. <strong>Bidirectional Path Tracing</strong>. (<strong>AreaLight</strong> cases supported)</p>
+
+<h2>
+<a id="overview-of-the-project" class="anchor" href="#overview-of-the-project" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview of the project</h2>
+
+<h3>
+<a id="task-1-parallel-bvh-construction-with-cuda-acceleration" class="anchor" href="#task-1-parallel-bvh-construction-with-cuda-acceleration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Task 1: Parallel BVH Construction with CUDA Acceleration</h3>
+
+<p>For the first task, we first implemented the Morton code based method which only runs on CPU. Then we implemented the parallel binary radix tree(BRT) construction algorithm as proposed in <a href="http://dl.acm.org/citation.cfm?id=2383801"><em>Karras, Tero. "Maximizing parallelism in the construction of BVHs, octrees, and k-d trees."</em></a> for general BRT construction. Thirdly, we implemented the parallel algorithm for BVH construction based on BRT construction algorithm, which augments it by adding a bottom-up parallel bounding box construction phase. We also compared the efficiency of different approaches.</p>
+
+<h3>
+<a id="task-2-bidirectional-path-tracing" class="anchor" href="#task-2-bidirectional-path-tracing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Task 2: Bidirectional Path Tracing</h3>
+
+<p>For the second one, we modified the renderer used in Homework 3, which uses traditional path tracing, to one which uses Bidirectional Path Tracing (BDPT). The new renderer is able to render scenes with AreaLight using BDPT with better illumination and variation in shadowed areas. We compared the efficiency of there two methods, as well as the ``photorealisticity" of the rendered images under these two methods. Our BDPT gives better illumination in the soft shaded area, and less variance in the caustic focused light under a glass sphere.</p>
+
+<p>This is a comparison of our renderer and the classic path tracing:</p>
+
+<p><img src="http://7u2p2j.com1.z0.glb.clouddn.com/CGReport.png" alt=""></p>
+
+<p>There is also a  really cool screen record of our BDPT renderer (Click to show)</p>
+
+<p><a href="https://youtu.be/gRIJggimCf4"><img src="http://7u2p2j.com1.z0.glb.clouddn.com/youtubeBDPT.jpg" alt="Everything Is AWESOME"></a></p>
+
+
+
+<h2>
+<a id="how-to-test-the-code" class="anchor" href="#how-to-test-the-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to test the code</h2>
+
+<p>To test the BVH build thing, you can type in</p>
+
+<pre><code>referg
+</code></pre>
+
+<p>and hit <code>v</code> for BVH consreuction.</p>
+
+<p>To test Task 2, you can type in</p>
+
+<pre><code>./pathtracer -t 18 -s 16 ../dae/sky/CBspheres.dae
+</code></pre>
+
+<p>for example to test the CBsphere (and lambertian) case. Again notice only <strong>AreaLight</strong> model is supported in our little demo.</p>
+
+<h1>
+<a id="initial-project-proposal-changed-during-implementation" class="anchor" href="#initial-project-proposal-changed-during-implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Initial Project Proposal [Changed during implementation]</h1>
 
 <p>For the last assignment, we are going to choose option F: <strong>Advanced Monte Carlo Rendering</strong>. We will implement sub-options <strong>1 to 4</strong>.</p>
 
