@@ -27,8 +27,6 @@
 <li>Rui Zhu, Robotics Institute, School of Computer Science, Carnegie Mellon University (<a href="mailto:rz1@andrew.cmu.edu">rz1@andrew.cmu.edu</a>)</li>
 </ul>
 
-<p>[TOC]</p>
-
 <h1>
 <a id="source-code-click-to-access-the-repository" class="anchor" href="#source-code-click-to-access-the-repository" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="">Source Code (Click to Access the Repository)</a>
 </h1>
@@ -42,21 +40,23 @@
 <h2>
 <a id="how-to-test-the-code" class="anchor" href="#how-to-test-the-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to test the code</h2>
 
-<p>To test the BVH build thing, you can type in</p>
+<p>To test Task 1, the BVH build thing, you can type in</p>
 
-<pre><code>referg
+<pre><code>./pathtracer ../dae/sky/CBbunny.dae
 </code></pre>
 
-<p>and hit <code>v</code> for BVH construction.</p>
+<p>and hit <code>v</code> for BVH construction (use classic path tracing by default. See parameter <code>-p</code> below).</p>
 
 <p>To test Task 2, you can type in (for example to test the CBsphere (and lambertian) case)</p>
 
-<pre><code>./pathtracer -t 18 -s 16 ../dae/sky/CBspheres.dae
+<pre><code>./pathtracer -t 18 -s 16 -p 1 ../dae/sky/CBspheres.dae
 </code></pre>
 
 <p>and hit <code>r</code> for BDPT rendering.</p>
 
-<p>Again notice that only <strong>AreaLight</strong> models are supported in our little demo version.</p>
+<p>The <code>-p</code> parameter is a switch for BDPT or classic path tracing (1 is BDPT; 0 for classic path tracing (default)).</p>
+
+<p>Again notice that only <strong>AreaLight</strong> models (the Cornell Box series) are supported in our little demo version.</p>
 
 <h1>
 <a id="final-report-in-pdf-15-pages-click-me-to-view" class="anchor" href="#final-report-in-pdf-15-pages-click-me-to-view" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="">Final Report (in .pdf; 15+ pages; Click me to view)</a>
