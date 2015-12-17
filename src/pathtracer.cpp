@@ -38,7 +38,7 @@ namespace CMU462 {
 PathTracer::PathTracer(size_t ns_aa,
                        size_t max_ray_depth, size_t ns_area_light,
                        size_t ns_diff, size_t ns_glsy, size_t ns_refr,
-                       size_t num_threads, HDRImageBuffer* envmap) 
+                       size_t num_threads, HDRImageBuffer* envmap, size_t ifBDPT) 
 {
   state = INIT,
   this->ns_aa = ns_aa;
@@ -48,6 +48,8 @@ PathTracer::PathTracer(size_t ns_aa,
   this->ns_diff = ns_diff;
   this->ns_glsy = ns_diff;
   this->ns_refr = ns_refr;
+  this->useBDPT = ifBDPT;
+  cout<<"this->useBDPT"<<this->useBDPT<<endl;
 
   if (envmap) {
     this->envLight = new EnvironmentLight(envmap);
@@ -604,7 +606,7 @@ void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye, S
 
     Vertice v;
     const Vector3D& hit_p = ray.o + ray.d * its.t;
-    v.p = hit_p + EPS_D * its.n;
+    v.p = hit_p;
     v.n = its.n;
     v.bsdf = bsdf;
 
@@ -634,11 +636,11 @@ void PathTracer::randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye, S
     ray.depth ++;
 
     v.cumulative = cumulative;
-    if (ray.depth > 10) // Repeat extending the path until a maximun length
+    if (ray.depth > 30 || cumulative.illum() < 1E-7) // Repeat extending the path until a maximun length
       break;
 
     vertices.push_back(v);
-    ray.o = hit_p + ray.d * EPS_D * 10.0; // Origion of the next light
+    ray.o = hit_p + ray.d * EPS_D; // Origion of the next light
   }
 }
 
@@ -823,12 +825,16 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
                                  (y + 0.5) / screenH);
     r.depth = max_ray_depth;
 
-    #ifdef ENABLE_PATH_TRACING
+    // #ifdef ENABLE_PATH_TRACING
+    if (this->useBDPT == 0)
       return trace_ray(r); // use traditional ray-traycing
-    #else
+    // #else
+    else
+    {
       Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
       return trace_ray_bpt_spt;
-    #endif
+    }
+    // #endif
   }
 
   Spectrum s = Spectrum();
@@ -843,11 +849,13 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
         Ray r = camera->generate_ray((x + dx) / screenW, (y + dy) / screenH);
         r.depth = max_ray_depth;
         
-        #ifdef ENABLE_PATH_TRACING
+        // #ifdef ENABLE_PATH_TRACING
+        if (this->useBDPT == 0)
           s += trace_ray(r, true); // use traditional ray-traycing
-        #else
+        // #else
+        else
           Spectrum trace_ray_bpt_spt = trace_ray_bpt(r, x, y); // use bdrt
-        #endif
+        // #endif
       }
     }
   }
@@ -878,19 +886,22 @@ void PathTracer::raytrace_tile(int tile_x, int tile_y,
     if (!continueRaytracing) return;
     for (size_t x = tile_start_x; x < tile_end_x; x++) {
         Spectrum s = raytrace_pixel(x, y);
-         #ifdef ENABLE_PATH_TRACING
+         // #ifdef ENABLE_PATH_TRACING
+        if (this->useBDPT == 0)
           sampleBuffer.update_pixel(s, x, y);
-        #endif
+        // #endif
     }
   }
 
   tile_samples[tile_idx_x + tile_idx_y * num_tiles_w] += 1;
 
-  #ifdef ENABLE_PATH_TRACING
+  // #ifdef ENABLE_PATH_TRACING
+  if (this->useBDPT == 0)
     sampleBuffer.toColor(frameBuffer, tile_start_x, tile_start_y, tile_end_x, tile_end_y);
-  #else
+  // #else
+  else
     sampleBuffer.toColor(frameBuffer, 0, 0, w, h); // need to also render tiles in case (iii) which does not originate in the camera ray (pixel)
-  #endif
+  // #endif
 }
 
 void PathTracer::worker_thread() {

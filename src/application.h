@@ -52,6 +52,7 @@ struct AppConfig {
 
     pathtracer_num_threads = 1;
     pathtracer_envmap = NULL;
+    pathtracer_BDPT = 0;
 
   }
 
@@ -62,6 +63,7 @@ struct AppConfig {
   size_t pathtracer_ns_glsy;
   size_t pathtracer_ns_refr;
   size_t pathtracer_num_threads;
+  size_t pathtracer_BDPT;
   HDRImageBuffer* pathtracer_envmap;
 
 };

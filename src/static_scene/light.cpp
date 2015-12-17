@@ -100,7 +100,7 @@ Spectrum AreaLight::sample_L(const Vector3D& p, Vector3D* wi,
 Spectrum AreaLight::sampleLightFromP(const Vector3D& p, Vector3D& onLight, Vector3D& wi) const {
   const Vector2D& sample = sampler.get_sample() - Vector2D(0.5f, 0.5f);
   onLight = position + sample.x * dim_x + sample.y * dim_y;
-  const Vector3D& d = position + sample.x * dim_x + sample.y * dim_y - p;
+  const Vector3D& d = onLight - p;
   float cosTheta = dot(d, direction);
   float sqDist = d.norm2();
   float dist = sqrt(sqDist);
@@ -127,7 +127,7 @@ Spectrum AreaLight::sampleLight(Ray* lightRay, float* lightPdf) const {
   Matrix3x3 o2w(w2o.T());
   lightRay->d = (o2w * localD).unit();
 
-  *lightPdf = 1.0 / (area * 2.0 * M_PI);
+  *lightPdf = 1.0 / (2.0 * M_PI);
   return radiance;
 };
 

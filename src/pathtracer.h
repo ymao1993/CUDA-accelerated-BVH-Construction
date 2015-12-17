@@ -72,7 +72,7 @@ class PathTracer {
              size_t max_ray_depth = 4, size_t ns_area_light = 1,
              size_t ns_diff = 1, size_t ns_glsy = 1, size_t ns_refr = 1,
              size_t num_threads = 1,
-             HDRImageBuffer* envmap = NULL);
+             HDRImageBuffer* envmap = NULL, size_t ifBDPT = 0);
 
   /**
    * Destructor.
@@ -185,7 +185,7 @@ class PathTracer {
   Spectrum trace_ray_bpt(const Ray &r, size_t x, size_t y);
 
   // ===RUI=== 
-  void randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye);
+  void randomWalk(Ray ray, std::vector<Vertice> &vertices, bool eye, Spectrum emission);
 
   // ===RUI=== 
   Spectrum evalPath(
@@ -250,6 +250,7 @@ class PathTracer {
   size_t ns_diff;       ///< number of samples - diffuse surfaces
   size_t ns_glsy;       ///< number of samples - glossy surfaces
   size_t ns_refr;       ///< number of samples - refractive surfaces
+  size_t useBDPT;
   vector<size_t> sample_grids; ///< decomposition of ns_aa for stratified sampling
 
   // Integration state //

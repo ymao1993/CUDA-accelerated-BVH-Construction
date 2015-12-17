@@ -380,7 +380,7 @@ void BVHAccel::constructBVHNodeFromBRTree(int idx, BVHNode* root, int start, int
   bool is_null  = false;
   int  child_idx= false;
   
-  cout<<start<<"->"<<end<<endl;
+  //cout<<start<<"->"<<end<<endl;
   
   BRTreeNode* brt_node = &internal_nodes[idx];
 

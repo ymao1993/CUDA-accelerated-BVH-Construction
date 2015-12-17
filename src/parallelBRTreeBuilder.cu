@@ -198,6 +198,8 @@ __global__ static void processInternalNode(unsigned int* sorted_morton_code, int
   // Determine where to split the range.
   int split = findSplit(sorted_morton_code, first, last);
 
+  if(split == -1) return;
+
   // Select childA.
   BRTreeNode* childA;
   bool isChildALeaf = false;

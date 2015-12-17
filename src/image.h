@@ -4,6 +4,7 @@
 #include "CMU462/color.h"
 #include "CMU462/spectrum.h"
 
+#include <string.h>
 #include <vector>
 
 namespace CMU462 {
@@ -115,14 +116,15 @@ struct HDRImageBuffer {
     data[x + y * w] = s;
   }
 
-  /**
+/**
    * By Rui.
    * update a pixel by adding a spectrum
    **/ 
   void update_pixel_add(const Spectrum& s, size_t x, size_t y) {
     // assert(0 <= x && x < w);
     // assert(0 <= y && y < h);
-    data[x + y * w] += s;
+    Spectrum absS = Spectrum(fabs(s.r), fabs(s.g), fabs(s.b));
+    data[x + y * w] += absS;
   }
 
 

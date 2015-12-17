@@ -24,6 +24,7 @@ void usage(const char* binaryName) {
   printf("  -m  <INT>        Maximum ray depth\n");
   printf("  -e  <PATH>       Path to environment map\n");
   printf("  -h               Print this help message\n");
+  printf("  -p               1 for BDPT; 0 for classic path tracing");
   printf("\n");
 }
 
@@ -68,12 +69,11 @@ HDRImageBuffer* load_exr(const char* file_path) {
 
 int main( int argc, char** argv ) {
 
-  // Verify Thrust Version
-  // printThrustVersion();
-
   // get the options
   AppConfig config; int opt;
-  while ( (opt = getopt(argc, argv, "s:l:t:m:e:h")) != -1 ) {  // for each option...
+
+
+  while ( (opt = getopt(argc, argv, "s:l:t:p:m:h:e")) != -1 ) {  // for each option...
     switch ( opt ) {
     case 's':
         config.pathtracer_ns_aa = atoi(optarg);
@@ -83,6 +83,9 @@ int main( int argc, char** argv ) {
         break;
     case 't':
         config.pathtracer_num_threads = atoi(optarg);
+        break;
+    case 'p':
+        config.pathtracer_BDPT = atoi(optarg);
         break;
     case 'm':
         config.pathtracer_max_ray_depth = atoi(optarg);
